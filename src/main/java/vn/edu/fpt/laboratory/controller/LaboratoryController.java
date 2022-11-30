@@ -1,0 +1,55 @@
+package vn.edu.fpt.laboratory.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
+import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
+import vn.edu.fpt.laboratory.dto.response.laboratory.*;
+import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
+
+/**
+ * @author : Hoang Lam
+ * @product : Charity Management System
+ * @project : Charity System
+ * @created : 29/11/2022 - 21:48
+ * @contact : 0834481768 - hoang.harley.work@gmail.com
+ **/
+@RequestMapping("${app.application-context}/public/api/v1/laboratories")
+public interface LaboratoryController {
+
+    @PostMapping("/laboratory")
+    ResponseEntity<GeneralResponse<CreateLaboratoryResponse>> createLaboratory(@RequestBody CreateLaboratoryRequest request);
+
+    @PostMapping("/{lab-id}/project")
+    ResponseEntity<GeneralResponse<CreateProjectResponse>> createProject(@PathVariable("lab-id") String labId, @RequestBody _CreateProjectRequest request);
+
+
+    @PutMapping("/{lab-id}")
+    ResponseEntity<GeneralResponse<Object>> updateLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody UpdateLaboratoryRequest request);
+
+    @DeleteMapping("/{lab-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteLaboratory(@PathVariable(name = "lab-id") String labId);
+
+    @GetMapping
+    ResponseEntity<GeneralResponse<GetLaboratoryContainerResponse>> getLaboratory(
+            @RequestParam(name = "lab-id", required = false) String laboratoryId,
+            @RequestParam(name = "account-id", required = false) String accountId,
+            @RequestParam(name = "lab-name", required = false) String laboratoryName,
+            @RequestParam(name = "lab-name-sort-by", required = false) String laboratoryNameSortBy,
+            @RequestParam(name = "major", required = false) String major,
+            @RequestParam(name = "major-sort-by", required = false) String majorSortBy,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size,
+            @RequestParam(name = "suggestion-page", required = false) Integer suggestionPage,
+            @RequestParam(name = "suggestion-size", required = false) Integer suggestionSize
+            );
+
+    @GetMapping("/{lab-id}")
+    ResponseEntity<GeneralResponse<GetLaboratoryDetailResponse>> getLaboratoryDetail(@PathVariable(name = "lab-id") String labId);
+
+    @GetMapping("/{lab-id}/members")
+    ResponseEntity<GeneralResponse<GetMemberResponse>> getMemberInLaboratory(@PathVariable(name = "lab-id") String labId);
+}
