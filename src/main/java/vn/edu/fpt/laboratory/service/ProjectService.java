@@ -19,9 +19,9 @@ public interface ProjectService {
 
     CreateProjectResponse createProject(String labId, _CreateProjectRequest request);
 
-    void updateProject(String projectId, _UpdateProjectRequest request);
+    void updateProject(String labId, String projectId, _UpdateProjectRequest request);
 
-    void deleteProject(String projectId);
+    void deleteProject(String labId, String projectId);
 
     PageableResponse<GetProjectResponse> getProjectByCondition(_GetProjectRequest request);
 

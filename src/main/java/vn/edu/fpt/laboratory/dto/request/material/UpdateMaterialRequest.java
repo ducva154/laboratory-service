@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
 
@@ -20,4 +21,8 @@ import java.io.Serializable;
 public class UpdateMaterialRequest implements Serializable {
 
     private static final long serialVersionUID = 5721544750162383318L;
+    private String materialName;
+    private String description;
+    private String status;
+    private Integer amount;
 }

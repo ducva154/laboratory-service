@@ -14,10 +14,10 @@ import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.MaterialStatusEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
-import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.OrderMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.ReturnMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
+import vn.edu.fpt.laboratory.dto.request.material.*;
+import vn.edu.fpt.laboratory.dto.response.image.GetImageResponse;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
@@ -226,7 +226,37 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public GetMaterialDetailResponse getMaterialId(String materialId) {
-        return null;
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+
+        List<_Image> images = material.getImages();
+
+        return GetMaterialDetailResponse.builder()
+                .materialId(material.getMaterialId())
+                .materialName(material.getMaterialName())
+                .description(material.getDescription())
+                .status(material.getStatus())
+                .images(images.stream().map(this::convertImageToGetImageResponse).collect(Collectors.toList()))
+                .amount(material.getAmount())
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(material.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(material.getCreatedBy()))
+                        .build())
+                .createdDate(material.getCreatedDate())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(material.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(material.getLastModifiedBy()))
+                        .build())
+                .lastModifiedDate(material.getLastModifiedDate())
+                .build();
+    }
+
+    private GetImageResponse convertImageToGetImageResponse(_Image image) {
+        return GetImageResponse.builder()
+                .imageId(image.getImageId())
+                .imageName(image.getImageName())
+                .url(image.getUrl())
+                .build();
     }
 
     @Override
@@ -311,6 +341,71 @@ public class MaterialServiceImpl implements MaterialService {
             orderHistoryRepository.save(orderHistory);
         } catch (Exception ex) {
             throw new BusinessException("Can't save order history to database: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    public void removeImage(String materialId, String imageId) {
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+
+        if (material.getStatus().equals(MaterialStatusEnum.FREE.getStatus())) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
+        }
+        List<_Image> images = material.getImages();
+        _Image image = images.stream().filter(v -> v.getImageId().equals(imageId)).findAny()
+                .orElseThrow(() -> new BusinessException("Can't get image exists"));
+        images.remove(image);
+        material.setImages(images);
+        try {
+            materialRepository.save(material);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't addImage material to database: " + ex.getMessage());
+        }
+
+        imageRepository.delete(image);
+        s3BucketStorageService.deleteFile(image.getFullPath());
+    }
+
+    public void addImage(String materialId, AddImageRequest request) {
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+        Query query = new Query();
+        query.addCriteria(Criteria.where("materials.$id").is(new ObjectId(materialId)));
+        Laboratory laboratories;
+        try {
+            laboratories = mongoTemplate.findOne(query, Laboratory.class);
+            log.info("get laboratories: {}", laboratories);
+        }catch (Exception ex){
+            throw new BusinessException("Can't get laboratories");
+        }
+        if(laboratories == null){
+            throw new BusinessException("laboratories is null can't get Image");
+        }
+        List<_Image> images = new ArrayList<>();
+        if (request.getImages() != null) {
+            for (MultipartFile file :
+                    request.getImages()) {
+                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
+                String path = String.format("%s/%s", laboratories.getLaboratoryName(), fileName);
+                String url = s3BucketStorageService.uploadFile(path, fileName, file);
+                images.add(_Image.builder()
+                        .imageName(fileName)
+                        .fullPath(path)
+                        .url(url)
+                        .build());
+            }
+        }
+        if (!images.isEmpty()) {
+            images = imageRepository.saveAll(images);
+        }
+        List<_Image> currentImage = material.getImages();
+        currentImage.addAll(images);
+        material.setImages(currentImage);
+        try {
+            materialRepository.save(material);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
         }
     }
 }

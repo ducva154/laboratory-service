@@ -2,10 +2,7 @@ package vn.edu.fpt.laboratory.service;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
-import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.OrderMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.ReturnMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
@@ -22,7 +19,7 @@ public interface MaterialService {
 
     CreateMaterialResponse createMaterial(String labId, CreateMaterialRequest request);
 
-    void updateMaterial(String materialId, UpdateMaterialRequest  request);
+    void updateMaterial(String laboratoryId, String materialId, UpdateMaterialRequest  request);
 
     void deleteMaterial(String laboratoryId, String materialId);
 
@@ -30,7 +27,7 @@ public interface MaterialService {
 
     GetMaterialDetailResponse getMaterialId(String materialId);
 
-    OrderMaterialResponse orderMaterial(String materialId, OrderMaterialRequest request);
+    OrderMaterialResponse orderMaterial(String laboratoryId, String materialId, OrderMaterialRequest request);
 
     void returnMaterial(String orderId, ReturnMaterialRequest request);
 

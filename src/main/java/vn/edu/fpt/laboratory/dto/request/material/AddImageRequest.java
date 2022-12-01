@@ -4,27 +4,23 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
  * @project : Charity System
- * @created : 30/11/2022 - 18:29
+ * @created : 30/11/2022 - 22:26
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
-public class OrderMaterialRequest implements Serializable {
+public class AddImageRequest implements Serializable {
 
-    private static final long serialVersionUID = -7674328278013001218L;
-    private String materialId;
-    private Integer amount;
-    private String reason;
-    private LocalDateTime orderFrom;
-    private LocalDateTime orderTo;
-
+    private static final long serialVersionUID = 8916980909854995324L;
+    private MultipartFile[] images;
 }

@@ -104,7 +104,7 @@ public class LaboratoryControllerImpl implements LaboratoryController {
 
     @Override
     public ResponseEntity<GeneralResponse<GetLaboratoryDetailResponse>> getLaboratoryDetail(String labId) {
-        return null;
+        return responseFactory.response(laboratoryService.getLaboratoryDetail(labId));
     }
 
     @Override

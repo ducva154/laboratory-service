@@ -120,13 +120,59 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void updateProject(String projectId, _UpdateProjectRequest request) {
+    public void updateProject(String labId, String projectId, _UpdateProjectRequest request) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+        List<Project> projects = laboratory.getProjects();
 
+        if (projects.stream().noneMatch(m -> m.getProjectId().equals(projectId))) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory not contain this project");
+        }
+
+        if (Objects.nonNull(request.getProjectName())) {
+            if (projects.stream().anyMatch(m -> m.getProjectId().equals(projectId))) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
+            } else {
+                project.setProjectName(request.getProjectName());
+            }
+        }
+        if (Objects.nonNull(request.getDescription())) {
+            project.setDescription(request.getDescription());
+        }
+        if (Objects.nonNull(request.getStartDate())) {
+            project.setStartDate(request.getStartDate());
+        }
+        if (Objects.nonNull(request.getToDate()) && request.getToDate().isAfter(request.getStartDate())) {
+            project.setToDate(request.getToDate());
+        }
+        try {
+            projectRepository.save(project);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save project to database: " + ex.getMessage());
+        }
     }
 
     @Override
-    public void deleteProject(String projectId) {
-
+    public void deleteProject(String labId, String projectId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+        List<Project> projects = laboratory.getProjects();
+        projects.remove(project);
+        laboratory.setProjects(projects);
+        try {
+            laboratoryRepository.save(laboratory);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't update laboratory in database");
+        }
+        try {
+            projectRepository.delete(project);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete project in database");
+        }
     }
 
     @Override

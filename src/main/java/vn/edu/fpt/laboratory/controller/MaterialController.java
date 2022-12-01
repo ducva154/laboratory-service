@@ -4,10 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
-import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.OrderMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.ReturnMaterialRequest;
-import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
@@ -31,6 +28,13 @@ public interface MaterialController {
     @DeleteMapping("/{material-id}")
     ResponseEntity<GeneralResponse<Object>> deleteMaterial(@PathVariable(name = "material-id") String materialId);
 
+    @DeleteMapping("/{material-id}/{image-id}")
+    ResponseEntity<GeneralResponse<Object>> removeImage(@PathVariable(name = "material-id") String materialId, @PathVariable(name = "image-id") String imageId);
+
+    @PostMapping("/{material-id}")
+    ResponseEntity<GeneralResponse<Object>> addImage(@PathVariable(name = "material-id") String materialId, @RequestBody AddImageRequest request);
+
+    @GetMapping
     ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial();
 
     @GetMapping("/{material-id}")
