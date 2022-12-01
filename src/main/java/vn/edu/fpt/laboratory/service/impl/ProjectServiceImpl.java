@@ -16,6 +16,7 @@ import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
+import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -208,6 +209,11 @@ public class ProjectServiceImpl implements ProjectService {
         return new PageableResponse<>(request, totalElements, getProjectResponses);
     }
 
+    @Override
+    public PageableResponse<GetMemberResponse> getMemberInProject(String projectId) {
+        return null;
+    }
+
     private GetProjectResponse convertProjectToGetProjectResponse(Project project) {
         return GetProjectResponse.builder()
                 .projectId(project.getProjectId())
@@ -241,6 +247,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .lastModifiedDate(project.getLastModifiedDate())
                 .build();
     }
+
 
     private MemberInfoResponse convertMemberToMemberInfoResponse(MemberInfo memberInfo) {
         return MemberInfoResponse.builder()
