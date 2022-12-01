@@ -321,7 +321,7 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
-    public void returnMaterial(String orderId, ReturnMaterialRequest request) {
+    public void returnMaterial(String orderId) {
         OrderHistory orderHistory = orderHistoryRepository.findById(orderId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order history not exist"));
         Material material = materialRepository.findById(orderHistory.getMaterialId())

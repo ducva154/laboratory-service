@@ -29,7 +29,7 @@ public interface MaterialService {
 
     OrderMaterialResponse orderMaterial(String laboratoryId, String materialId, OrderMaterialRequest request);
 
-    void returnMaterial(String orderId, ReturnMaterialRequest request);
+    void returnMaterial(String orderId);
 
     void removeImage(String materialId, String imageId);
 

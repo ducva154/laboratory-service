@@ -10,6 +10,7 @@ import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.controller.MaterialController;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.common.SortableRequest;
 import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
@@ -17,6 +18,10 @@ import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.MaterialService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : Hoang Lam
@@ -40,13 +45,15 @@ public class MaterialControllerImpl implements MaterialController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> deleteMaterial(String materialId) {
-        return null;
+    public ResponseEntity<GeneralResponse<Object>> deleteMaterial(String laboratoryId, String materialId) {
+        materialService.deleteMaterial(laboratoryId, materialId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> removeImage(String materialId, String imageId) {
-        return null;
+        materialService.removeImage(materialId, imageId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
@@ -110,11 +117,12 @@ public class MaterialControllerImpl implements MaterialController {
 
     @Override
     public ResponseEntity<GeneralResponse<OrderMaterialResponse>> orderMaterial(String laboratoryId, String materialId, OrderMaterialRequest request) {
-        return null;
+        return responseFactory.response(materialService.orderMaterial(laboratoryId, materialId, request), ResponseStatusEnum.SUCCESS);
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> returnMaterial(String orderId, ReturnMaterialRequest request) {
-        return null;
+    public ResponseEntity<GeneralResponse<Object>> returnMaterial(String orderId) {
+        materialService.returnMaterial(orderId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 }
