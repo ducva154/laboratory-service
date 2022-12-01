@@ -132,7 +132,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         if (Objects.nonNull(request.getProjectName())) {
-            if (projects.stream().anyMatch(m -> m.getProjectId().equals(projectId))) {
+            if (projects.stream().anyMatch(m -> m.getProjectName().equals(request.getProjectName()))) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
             } else {
                 project.setProjectName(request.getProjectName());

@@ -20,14 +20,7 @@ import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
 @RequestMapping("${app.application-context}/public/api/v1/materials")
 public interface MaterialController {
 
-    @PutMapping("/{laboratory-id}/{material-id}")
-    ResponseEntity<GeneralResponse<Object>> updateMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
-                                                           @PathVariable(name = "material-id") String materialId,
-                                                           @RequestBody UpdateMaterialRequest request );
 
-    @DeleteMapping("/{material-id}")
-    ResponseEntity<GeneralResponse<Object>> deleteMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
-                                                           @PathVariable(name = "material-id") String materialId);
 
     @DeleteMapping("/{material-id}/{image-id}")
     ResponseEntity<GeneralResponse<Object>> removeImage(@PathVariable(name = "material-id") String materialId, @PathVariable(name = "image-id") String imageId);
@@ -36,24 +29,7 @@ public interface MaterialController {
     ResponseEntity<GeneralResponse<Object>> addImage(@PathVariable(name = "material-id") String materialId, @RequestBody AddImageRequest request);
 
     @GetMapping
-    ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial(
-            @RequestParam(name = "material-id", required = false) String materialId,
-            @RequestParam(name = "material-name", required = false) String materialName,
-            @RequestParam(name = "material-name-sort-by", required = false) String materialNameSortBy,
-            @RequestParam(name = "description", required = false) String description,
-            @RequestParam(name = "status", required = false) String status,
-            @RequestParam(name = "status-sort-by", required = false) String statusSortBy,
-            @RequestParam(name = "created-by", required = false) String createdBy,
-            @RequestParam(name = "created-date-from", required = false) String createdDateFrom,
-            @RequestParam(name = "created-date-to", required = false) String createdDateTo,
-            @RequestParam(name = "created-date-sort-by", required = false) String createdDateSortBy,
-            @RequestParam(name = "last-modified-by", required = false) String lastModifiedBy,
-            @RequestParam(name = "last-modified-date-from", required = false) String lastModifiedDateFrom,
-            @RequestParam(name = "last-modified-date-to", required = false) String lastModifiedDateTo,
-            @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
-            @RequestParam(name = "page", required = false) Integer page,
-            @RequestParam(name = "size", required = false) Integer size
-    );
+    ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial();
 
     @GetMapping("/{material-id}")
     ResponseEntity<GeneralResponse<GetMaterialDetailResponse>> getMaterialId(@PathVariable(name = "material-id") String materialId);

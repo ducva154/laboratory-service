@@ -22,34 +22,8 @@ import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
 @RequestMapping("${app.application-context}/public/api/v1/projects")
 public interface ProjectController {
 
-    @PutMapping("/{project-id}")
-    ResponseEntity<GeneralResponse<Object>> updateProject(@PathVariable(name = "laboratory-id") String laboratoryId,
-                                                          @PathVariable(name = "project-id") String projectId,
-                                                          @RequestBody _UpdateProjectRequest request);
-
     @GetMapping
-    ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProject(
-            @RequestParam(name = "project-id", required = false) String projectId,
-            @RequestParam(name = "project-name", required = false) String projectName,
-            @RequestParam(name = "project-name-sort-by", required = false) String projectNameSortBy,
-            @RequestParam(name = "description", required = false) String description,
-            @RequestParam(name = "start-date-from", required = false) String startDateFrom,
-            @RequestParam(name = "start-date-to", required = false) String startDateTo,
-            @RequestParam(name = "start-date-sort-by", required = false) String startDateSortBy,
-            @RequestParam(name = "to-date-from", required = false) String toDateFrom,
-            @RequestParam(name = "to-date-to", required = false) String toDateTo,
-            @RequestParam(name = "to-date-sort-by", required = false) String toDateSortBy,
-            @RequestParam(name = "created-by", required = false) String createdBy,
-            @RequestParam(name = "created-date-from", required = false) String createdDateFrom,
-            @RequestParam(name = "created-date-to", required = false) String createdDateTo,
-            @RequestParam(name = "created-date-sort-by", required = false) String createdDateSortBy,
-            @RequestParam(name = "last-modified-by", required = false) String lastModifiedBy,
-            @RequestParam(name = "last-modified-date-from", required = false) String lastModifiedDateFrom,
-            @RequestParam(name = "last-modified-date-to", required = false) String lastModifiedDateTo,
-            @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
-            @RequestParam(name = "page", required = false) Integer page,
-            @RequestParam(name = "size", required = false) Integer size
-    );
+    ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProject();
 
     @GetMapping("/{project-id}")
     ResponseEntity<GeneralResponse<GetProjectDetailResponse>> getProjectDetail(@PathVariable(name = "project-id") String projectId);

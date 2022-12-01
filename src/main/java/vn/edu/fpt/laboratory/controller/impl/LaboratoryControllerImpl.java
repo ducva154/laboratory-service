@@ -13,7 +13,9 @@ import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
+import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
@@ -61,6 +63,24 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateLaboratory(String labId, UpdateLaboratoryRequest request) {
         return null;
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> updateMaterial(String laboratoryId, String materialId, UpdateMaterialRequest request) {
+        materialService.updateMaterial(laboratoryId, materialId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> updateProject(String laboratoryId, String projectId, _UpdateProjectRequest request) {
+        projectService.updateProject(laboratoryId, projectId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> deleteMaterial(String laboratoryId, String materialId) {
+        materialService.deleteMaterial(laboratoryId, materialId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override

@@ -8,7 +8,9 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
+import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
@@ -35,6 +37,19 @@ public interface LaboratoryController {
 
     @PutMapping("/{lab-id}")
     ResponseEntity<GeneralResponse<Object>> updateLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody UpdateLaboratoryRequest request);
+
+    @PutMapping("/{laboratory-id}/materials/{material-id}")
+    ResponseEntity<GeneralResponse<Object>> updateMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
+                                                           @PathVariable(name = "material-id") String materialId,
+                                                           @RequestBody UpdateMaterialRequest request );
+    @PutMapping("/{laboratory-id}/projects/{project-id}")
+    ResponseEntity<GeneralResponse<Object>> updateProject(@PathVariable(name = "laboratory-id") String laboratoryId,
+                                                          @PathVariable(name = "project-id") String projectId,
+                                                          @RequestBody _UpdateProjectRequest request);
+
+    @DeleteMapping("/{laboratory-id}/materials/{material-id}")
+    ResponseEntity<GeneralResponse<Object>> deleteMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
+                                                           @PathVariable(name = "material-id") String materialId);
 
     @DeleteMapping("/{lab-id}")
     ResponseEntity<GeneralResponse<Object>> deleteLaboratory(@PathVariable(name = "lab-id") String labId);
