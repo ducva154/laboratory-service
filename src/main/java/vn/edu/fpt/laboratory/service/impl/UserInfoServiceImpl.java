@@ -27,6 +27,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     public UserInfo getUserInfo(String accountId) {
         try {
             String userInfoStr = redisTemplate.opsForValue().get(String.format("userinfo:%s", accountId));
+            log.info("User info str: {}", userInfoStr);
             return objectMapper.readValue(userInfoStr, UserInfo.class);
         }catch (Exception ex){
             log.error("Can't get userinfo in redis: {}", ex.getMessage());
