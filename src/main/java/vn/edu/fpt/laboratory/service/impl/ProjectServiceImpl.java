@@ -211,7 +211,22 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public PageableResponse<GetMemberResponse> getMemberInProject(String projectId) {
-        return null;
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+        List<MemberInfo> memberInfos = project.getMembers();
+        List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberInfoResponse).collect(Collectors.toList());
+        return new PageableResponse<>(getMemberResponses);
+    }
+
+    private GetMemberResponse convertMemberToGetMemberInfoResponse(MemberInfo memberInfo) {
+        return GetMemberResponse.builder()
+                .memberId(memberInfo.getMemberId())
+                .role(memberInfo.getRole())
+                .userInfo(UserInfoResponse.builder()
+                        .accountId(memberInfo.getAccountId())
+                        .userInfo(userInfoService.getUserInfo(memberInfo.getAccountId()))
+                        .build())
+                .build();
     }
 
     private GetProjectResponse convertProjectToGetProjectResponse(Project project) {
