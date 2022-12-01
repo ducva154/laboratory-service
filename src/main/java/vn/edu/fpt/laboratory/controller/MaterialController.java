@@ -20,13 +20,7 @@ import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
 @RequestMapping("${app.application-context}/public/api/v1/materials")
 public interface MaterialController {
 
-    @PutMapping("/{laboratory-id}/{material-id}")
-    ResponseEntity<GeneralResponse<Object>> updateMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
-                                                           @PathVariable(name = "material-id") String materialId,
-                                                           @RequestBody UpdateMaterialRequest request );
 
-    @DeleteMapping("/{material-id}")
-    ResponseEntity<GeneralResponse<Object>> deleteMaterial(@PathVariable(name = "material-id") String materialId);
 
     @DeleteMapping("/{material-id}/{image-id}")
     ResponseEntity<GeneralResponse<Object>> removeImage(@PathVariable(name = "material-id") String materialId, @PathVariable(name = "image-id") String imageId);
@@ -46,5 +40,5 @@ public interface MaterialController {
                                                                          @RequestBody OrderMaterialRequest request);
 
     @PostMapping("/orders/{order-id}")
-    ResponseEntity<GeneralResponse<Object>> returnMaterial(@PathVariable(name = "order-id") String orderId, @RequestBody ReturnMaterialRequest request);
+    ResponseEntity<GeneralResponse<Object>> returnMaterial(@PathVariable(name = "order-id") String orderId);
 }

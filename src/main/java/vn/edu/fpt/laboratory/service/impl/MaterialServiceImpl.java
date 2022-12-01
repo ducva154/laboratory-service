@@ -9,10 +9,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
-import vn.edu.fpt.laboratory.constant.AppConstant;
-import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
-import vn.edu.fpt.laboratory.constant.MaterialStatusEnum;
-import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.constant.*;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
@@ -282,7 +279,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .amount(request.getAmount())
                 .orderFrom(request.getOrderFrom())
                 .orderTo(request.getOrderTo())
-                .status(AppConstant.SUCCESS)
+                .status(OrderStatusEnum.WAITING_FOR_APPROVAL.getStatus())
                 .build();
 
         List<MemberInfo> managers = laboratory.getMembers().stream()
@@ -321,7 +318,7 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
-    public void returnMaterial(String orderId, ReturnMaterialRequest request) {
+    public void returnMaterial(String orderId) {
         OrderHistory orderHistory = orderHistoryRepository.findById(orderId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order history not exist"));
         Material material = materialRepository.findById(orderHistory.getMaterialId())
@@ -331,6 +328,7 @@ public class MaterialServiceImpl implements MaterialService {
         }
         material.setAmount(material.getAmount() + orderHistory.getAmount());
         orderHistory.setActuallyReturn(LocalDateTime.now());
+        orderHistory.setStatus(OrderStatusEnum.COMPLETED.getStatus());
         try {
             materialRepository.save(material);
         } catch (Exception ex) {

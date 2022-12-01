@@ -33,20 +33,12 @@ public class MaterialControllerImpl implements MaterialController {
     private final ResponseFactory responseFactory;
 
     private final MaterialService materialService;
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> updateMaterial(String laboratoryId, String materialId, UpdateMaterialRequest request) {
-        materialService.updateMaterial(laboratoryId, materialId, request);
-        return responseFactory.response(ResponseStatusEnum.SUCCESS);
-    }
 
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> deleteMaterial(String materialId) {
-        return null;
-    }
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> removeImage(String materialId, String imageId) {
-        return null;
+        materialService.removeImage(materialId, imageId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
@@ -67,11 +59,12 @@ public class MaterialControllerImpl implements MaterialController {
 
     @Override
     public ResponseEntity<GeneralResponse<OrderMaterialResponse>> orderMaterial(String laboratoryId, String materialId, OrderMaterialRequest request) {
-        return null;
+        return responseFactory.response(materialService.orderMaterial(laboratoryId, materialId, request), ResponseStatusEnum.SUCCESS);
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> returnMaterial(String orderId, ReturnMaterialRequest request) {
-        return null;
+    public ResponseEntity<GeneralResponse<Object>> returnMaterial(String orderId) {
+        materialService.returnMaterial(orderId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 }

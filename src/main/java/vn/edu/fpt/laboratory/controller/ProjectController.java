@@ -22,9 +22,6 @@ import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
 @RequestMapping("${app.application-context}/public/api/v1/projects")
 public interface ProjectController {
 
-    @PutMapping("/{project-id}")
-    ResponseEntity<GeneralResponse<Object>> updateProject(@PathVariable(name = "project-id") String projectId, @RequestBody _UpdateProjectRequest request);
-
     @GetMapping
     ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProject();
 

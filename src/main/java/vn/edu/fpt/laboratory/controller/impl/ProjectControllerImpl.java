@@ -31,11 +31,9 @@ import vn.edu.fpt.laboratory.service.ProjectService;
 public class ProjectControllerImpl implements ProjectController {
 
     private final ResponseFactory responseFactory;
+    private final ProjectService projectService;
 
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> updateProject(String projectId, _UpdateProjectRequest request) {
-        return null;
-    }
+
 
     @Override
     public ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProject() {
@@ -44,7 +42,7 @@ public class ProjectControllerImpl implements ProjectController {
 
     @Override
     public ResponseEntity<GeneralResponse<GetProjectDetailResponse>> getProjectDetail(String projectId) {
-        return null;
+        return responseFactory.response(projectService.getProjectDetailByProjectId(projectId));
     }
 
     @Override
