@@ -71,7 +71,6 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
 
     @Override
     public void deleteFile(String path) {
-
         DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucket, path);
         try {
             amazonS3.deleteObject(deleteObjectRequest);
