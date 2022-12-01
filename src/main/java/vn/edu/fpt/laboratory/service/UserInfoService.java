@@ -1,6 +1,6 @@
 package vn.edu.fpt.laboratory.service;
 
-import vn.edu.fpt.laboratory.entity.common.UserInfo;
+import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 
 /**
  * @author : Hoang Lam

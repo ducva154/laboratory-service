@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import vn.edu.fpt.laboratory.entity.common.UserInfo;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

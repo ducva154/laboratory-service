@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.material.*;
-import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
 import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;

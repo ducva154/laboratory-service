@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.laboratory.entity.common.UserInfo;
+import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.service.UserInfoService;
 
 /**
