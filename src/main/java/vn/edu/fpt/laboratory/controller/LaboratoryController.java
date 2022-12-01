@@ -1,13 +1,17 @@
 package vn.edu.fpt.laboratory.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
+import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 
 /**
@@ -26,6 +30,8 @@ public interface LaboratoryController {
     @PostMapping("/{lab-id}/project")
     ResponseEntity<GeneralResponse<CreateProjectResponse>> createProject(@PathVariable("lab-id") String labId, @RequestBody _CreateProjectRequest request);
 
+    @PostMapping(value = "/{lab-id}/material", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    ResponseEntity<GeneralResponse<CreateMaterialResponse>> createMaterial(@PathVariable("lab-id") String labId, @ModelAttribute CreateMaterialRequest request);
 
     @PutMapping("/{lab-id}")
     ResponseEntity<GeneralResponse<Object>> updateLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody UpdateLaboratoryRequest request);
@@ -52,4 +58,8 @@ public interface LaboratoryController {
 
     @GetMapping("/{lab-id}/members")
     ResponseEntity<GeneralResponse<GetMemberResponse>> getMemberInLaboratory(@PathVariable(name = "lab-id") String labId);
+
+    @DeleteMapping("/{lab-id}/members/{member-id}")
+    ResponseEntity<GeneralResponse<RemoveMemberFromLaboratoryResponse>> removeMemberFromLaboratory(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);
+
 }

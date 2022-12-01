@@ -3,11 +3,13 @@ package vn.edu.fpt.laboratory.entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import vn.edu.fpt.laboratory.entity.common.Auditor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,5 +41,7 @@ public class Material extends Auditor {
     @Field(name = "amount")
     private Integer amount;
     @Field(name = "images")
-    private List<_Image> images;
+    @DBRef(lazy = true)
+    @Builder.Default
+    private List<_Image> images = new ArrayList<>();
 }

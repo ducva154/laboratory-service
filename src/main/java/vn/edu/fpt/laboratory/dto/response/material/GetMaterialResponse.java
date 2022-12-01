@@ -1,9 +1,8 @@
 package vn.edu.fpt.laboratory.dto.response.material;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import vn.edu.fpt.laboratory.dto.common.AuditableResponse;
 
 import java.io.Serializable;
 
@@ -15,9 +14,17 @@ import java.io.Serializable;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
-@Data
-@Builder
-public class GetMaterialResponse implements Serializable {
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+public class GetMaterialResponse extends AuditableResponse implements Serializable {
 
     private static final long serialVersionUID = -2107177195120400774L;
+    private String materialId;
+    private String materialName;
+    private String description;
+    private Integer amount;
+    private String status;
 }

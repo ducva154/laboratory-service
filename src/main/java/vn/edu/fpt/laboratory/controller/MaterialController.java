@@ -1,9 +1,7 @@
 package vn.edu.fpt.laboratory.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
@@ -25,17 +23,24 @@ import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
 @RequestMapping("${app.application-context}/public/api/v1/materials")
 public interface MaterialController {
 
-    ResponseEntity<GeneralResponse<CreateMaterialResponse>> createMaterial(@RequestBody CreateMaterialRequest request);
+    @PutMapping("/{laboratory-id}/{material-id}")
+    ResponseEntity<GeneralResponse<Object>> updateMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
+                                                           @PathVariable(name = "material-id") String materialId,
+                                                           @RequestBody UpdateMaterialRequest request );
 
-    ResponseEntity<GeneralResponse<Object>> updateMaterial(@PathVariable(name = "material-id") String materialId, @RequestBody UpdateMaterialRequest request );
-
+    @DeleteMapping("/{material-id}")
     ResponseEntity<GeneralResponse<Object>> deleteMaterial(@PathVariable(name = "material-id") String materialId);
 
     ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial();
 
+    @GetMapping("/{material-id}")
     ResponseEntity<GeneralResponse<GetMaterialDetailResponse>> getMaterialId(@PathVariable(name = "material-id") String materialId);
 
-    ResponseEntity<GeneralResponse<OrderMaterialResponse>> orderMaterial(@PathVariable(name = "material-id") String materialId, @RequestBody OrderMaterialRequest request);
+    @PostMapping("/{laboratory-id}/{material-id}/order")
+    ResponseEntity<GeneralResponse<OrderMaterialResponse>> orderMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
+                                                                         @PathVariable(name = "material-id") String materialId,
+                                                                         @RequestBody OrderMaterialRequest request);
 
+    @PostMapping("/orders/{order-id}")
     ResponseEntity<GeneralResponse<Object>> returnMaterial(@PathVariable(name = "order-id") String orderId, @RequestBody ReturnMaterialRequest request);
 }

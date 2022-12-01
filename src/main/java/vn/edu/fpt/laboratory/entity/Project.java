@@ -42,6 +42,9 @@ public class Project extends Auditor {
     private LocalDate startDate;
     @Field(name = "to_date")
     private LocalDate toDate;
+    @Field(name = "owner_by")
+    @DBRef(lazy = true)
+    private MemberInfo ownerBy;
     @Field(name = "members")
     @DBRef(lazy = true)
     private List<MemberInfo> members;

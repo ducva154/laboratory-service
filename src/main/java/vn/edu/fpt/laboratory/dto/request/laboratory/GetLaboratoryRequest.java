@@ -2,6 +2,7 @@ package vn.edu.fpt.laboratory.dto.request.laboratory;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.bson.types.ObjectId;
 import vn.edu.fpt.laboratory.constant.AppConstant;
 import vn.edu.fpt.laboratory.dto.common.PageableRequest;
 import vn.edu.fpt.laboratory.utils.RequestDataUtils;
@@ -32,8 +33,8 @@ public class GetLaboratoryRequest extends PageableRequest {
     private Integer suggestionSize;
     private Integer suggestionPage;
 
-    public String getLaboratoryId() {
-        return laboratoryId;
+    public ObjectId getLaboratoryId() {
+        return RequestDataUtils.convertObjectId(laboratoryId);
     }
 
     public String getAccountId() {

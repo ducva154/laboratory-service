@@ -2,7 +2,9 @@ package vn.edu.fpt.laboratory.utils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -15,6 +17,10 @@ import java.util.Objects;
  **/
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RequestDataUtils {
+
+    public static ObjectId convertObjectId(String data){
+        return data == null ? null : ObjectId.isValid(data) ? new ObjectId(data) : null;
+    }
 
     public static String convertSearchableData(String data){
         if(Objects.nonNull(data)) {
@@ -32,7 +38,7 @@ public class RequestDataUtils {
         }
     }
 
-    public static LocalDateTime convertDateFrom(String dateFrom){
+    public static LocalDateTime convertDateTimeFrom(String dateFrom){
         if(Objects.isNull(dateFrom) || dateFrom.isBlank()){
             return LocalDateTime.of(1900, 1, 1,0, 0, 0);
         }else{
@@ -40,11 +46,27 @@ public class RequestDataUtils {
         }
     }
 
-    public static LocalDateTime convertDateTo(String dateTo){
+    public static LocalDateTime convertDateTimeTo(String dateTo){
         if(Objects.isNull(dateTo) || dateTo.isBlank()){
             return LocalDateTime.now();
         }else{
             return DateTimeConverter.toLocalDateTime(dateTo);
+        }
+    }
+
+    public static LocalDate convertDateFrom(String dateFrom){
+        if(Objects.isNull(dateFrom) || dateFrom.isBlank()){
+            return LocalDate.of(1900, 1, 1);
+        }else{
+            return DateTimeConverter.toLocaleDate(dateFrom);
+        }
+    }
+
+    public static LocalDate convertDateTo(String dateTo){
+        if(Objects.isNull(dateTo) || dateTo.isBlank()){
+            return LocalDate.now();
+        }else{
+            return DateTimeConverter.toLocaleDate(dateTo);
         }
     }
 }

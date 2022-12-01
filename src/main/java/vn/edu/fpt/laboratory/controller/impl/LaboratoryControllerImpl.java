@@ -12,11 +12,15 @@ import vn.edu.fpt.laboratory.dto.common.SortableRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
+import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
+import vn.edu.fpt.laboratory.service.MaterialService;
 import vn.edu.fpt.laboratory.service.ProjectService;
 
 import java.util.ArrayList;
@@ -38,6 +42,7 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     private final ResponseFactory responseFactory;
     private final LaboratoryService laboratoryService;
     private final ProjectService projectService;
+    private final MaterialService materialService;
 
     @Override
     public ResponseEntity<GeneralResponse<CreateLaboratoryResponse>> createLaboratory(CreateLaboratoryRequest request) {
@@ -49,6 +54,10 @@ public class LaboratoryControllerImpl implements LaboratoryController {
         return responseFactory.response(projectService.createProject(labId, request), ResponseStatusEnum.CREATED);
     }
 
+    @Override
+    public ResponseEntity<GeneralResponse<CreateMaterialResponse>> createMaterial(String labId, CreateMaterialRequest request) {
+        return responseFactory.response(materialService.createMaterial(labId, request), ResponseStatusEnum.CREATED);
+    }
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateLaboratory(String labId, UpdateLaboratoryRequest request) {
         return null;
@@ -100,6 +109,11 @@ public class LaboratoryControllerImpl implements LaboratoryController {
 
     @Override
     public ResponseEntity<GeneralResponse<GetMemberResponse>> getMemberInLaboratory(String labId) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<RemoveMemberFromLaboratoryResponse>> removeMemberFromLaboratory(String labId, String memberId) {
         return null;
     }
 }

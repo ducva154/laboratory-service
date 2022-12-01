@@ -15,9 +15,11 @@ import java.io.Serializable;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
 public class OrderMaterialResponse implements Serializable {
 
     private static final long serialVersionUID = 4500432265464938087L;
+    private String orderId;
 }

@@ -3,13 +3,16 @@ package vn.edu.fpt.laboratory.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ProjectRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
@@ -20,14 +23,18 @@ import vn.edu.fpt.laboratory.entity.Laboratory;
 import vn.edu.fpt.laboratory.entity.MemberInfo;
 import vn.edu.fpt.laboratory.entity.Project;
 import vn.edu.fpt.laboratory.exception.BusinessException;
+import vn.edu.fpt.laboratory.repository.BaseMongoRepository;
 import vn.edu.fpt.laboratory.repository.LaboratoryRepository;
 import vn.edu.fpt.laboratory.repository.MemberInfoRepository;
 import vn.edu.fpt.laboratory.repository.ProjectRepository;
 import vn.edu.fpt.laboratory.service.ProjectService;
+import vn.edu.fpt.laboratory.service.UserInfoService;
 import vn.edu.fpt.laboratory.utils.AuditorUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author : Hoang Lam
@@ -44,6 +51,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final LaboratoryRepository laboratoryRepository;
     private final ProjectRepository projectRepository;
     private final MemberInfoRepository memberInfoRepository;
+    private final UserInfoService userInfoService;
     private final MongoTemplate mongoTemplate;
 
     @Override
@@ -55,7 +63,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
 
         Optional<Project> projectInDb = projectRepository.findByProjectName(request.getProjectName());
-        if(projectInDb.isPresent()){
+        if (projectInDb.isPresent()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name already exist");
         }
 
@@ -64,7 +72,7 @@ public class ProjectServiceImpl implements ProjectService {
         MemberInfo memberInfoInLab = laboratory.getMembers().stream().filter(m -> m.getAccountId().equals(accountId)).findAny()
                 .orElseThrow(() -> new BusinessException("Account ID not contain in repository member"));
 
-        if(!memberInfoInLab.getRole().equals(LaboratoryRoleEnum.OWNER.getRole()) && !memberInfoInLab.getRole().equals(LaboratoryRoleEnum.MANAGER.getRole())){
+        if (!memberInfoInLab.getRole().equals(LaboratoryRoleEnum.OWNER.getRole()) && !memberInfoInLab.getRole().equals(LaboratoryRoleEnum.MANAGER.getRole())) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Invalid role for create project");
         }
 
@@ -76,8 +84,8 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             memberInfo = memberInfoRepository.save(memberInfo);
             log.info("Create member info success: {}", memberInfo);
-        }catch (Exception ex){
-            throw new BusinessException("Can't create member info: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create member info: " + ex.getMessage());
         }
 
         Project project = Project.builder()
@@ -91,8 +99,8 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             project = projectRepository.save(project);
             log.info("Add project to database success");
-        }catch (Exception ex){
-            throw new BusinessException("Can't create project in database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create project in database: " + ex.getMessage());
         }
 
         List<Project> currentProject = laboratory.getProjects();
@@ -102,8 +110,8 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             laboratoryRepository.save(laboratory);
             log.info("Update laboratory success");
-        }catch (Exception ex){
-            throw new BusinessException("Can't update laboratory in database: "+ ex.getMessage());
+        } catch (Exception ex) {
+            throw new BusinessException("Can't update laboratory in database: " + ex.getMessage());
         }
 
         return CreateProjectResponse.builder()
@@ -123,11 +131,77 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public PageableResponse<GetProjectResponse> getProjectByCondition(_GetProjectRequest request) {
-        return null;
+        Query query = new Query();
+
+        if (Objects.nonNull(request.getProjectId())) {
+            query.addCriteria(Criteria.where("_id").is(request.getProjectId()));
+        }
+        if (Objects.nonNull(request.getProjectName())) {
+            query.addCriteria(Criteria.where("project_name").regex(request.getProjectName()));
+        }
+
+        if (Objects.nonNull(request.getDescription())) {
+            query.addCriteria(Criteria.where("description").regex(request.getDescription()));
+        }
+
+        query.addCriteria(Criteria.where("start_date").gte(request.getStartDateFrom()).lte(request.getStartDateTo()));
+
+        query.addCriteria(Criteria.where("to_date").gte(request.getToDateFrom()).lte(request.getToDateTo()));
+
+        BaseMongoRepository.addCriteriaWithAuditable(query, request);
+
+        Long totalElements = mongoTemplate.count(query, Project.class);
+
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+
+        List<Project> projects = mongoTemplate.find(query, Project.class);
+
+        List<GetProjectResponse> getProjectResponses = projects.stream().map(this::convertProjectToGetProjectResponse).collect(Collectors.toList());
+
+        return new PageableResponse<>(request, totalElements, getProjectResponses);
+    }
+
+    private GetProjectResponse convertProjectToGetProjectResponse(Project project) {
+        return GetProjectResponse.builder()
+                .projectId(project.getProjectId())
+                .projectName(project.getProjectName())
+                .description(project.getDescription())
+                .members(project.getMembers().size())
+                .build();
     }
 
     @Override
     public GetProjectDetailResponse getProjectDetailByProjectId(String projectId) {
-        return null;
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+
+        return GetProjectDetailResponse.builder()
+                .projectId(project.getProjectId())
+                .projectName(project.getProjectName())
+                .description(project.getDescription())
+                .members(project.getMembers().stream()
+                        .map(this::convertMemberToMemberInfoResponse)
+                        .collect(Collectors.toList()))
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(project.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(project.getCreatedBy()))
+                        .build())
+                .createdDate(project.getCreatedDate())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(project.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(project.getLastModifiedBy()))
+                        .build())
+                .lastModifiedDate(project.getLastModifiedDate())
+                .build();
+    }
+
+    private MemberInfoResponse convertMemberToMemberInfoResponse(MemberInfo memberInfo) {
+        return MemberInfoResponse.builder()
+                .memberId(memberInfo.getMemberId())
+                .role(memberInfo.getRole())
+                .accountId(memberInfo.getAccountId())
+                .userInfo(userInfoService.getUserInfo(memberInfo.getAccountId()))
+                .build();
     }
 }

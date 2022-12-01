@@ -11,6 +11,7 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
+import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -50,4 +51,11 @@ public class ProjectControllerImpl implements ProjectController {
     public ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInProject(String projectId) {
         return null;
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse<RemoveMemberFromProjectResponse>> removeMemberFromProject(String projectId, String memberId) {
+        return null;
+    }
+
+
 }

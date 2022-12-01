@@ -49,5 +49,10 @@ public class Laboratory extends Auditor {
     private List<Project> projects = new ArrayList<>();
     @Field(name = "members")
     @DBRef(lazy = true)
-    private List<MemberInfo> members;
+    @Builder.Default
+    private List<MemberInfo> members = new ArrayList<>();
+    @Field(name = "materials")
+    @DBRef(lazy = true)
+    @Builder.Default
+    private List<Material> materials = new ArrayList<>();
 }

@@ -1,20 +1,18 @@
 package vn.edu.fpt.laboratory.service.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
@@ -122,9 +120,15 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                         .role(ownerBy.getRole())
                         .userInfo(userInfoService.getUserInfo(ownerBy.getAccountId()))
                         .build())
-                .createdBy(laboratory.getCreatedBy())
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(laboratory.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(laboratory.getCreatedBy()))
+                        .build())
                 .createdDate(laboratory.getCreatedDate())
-                .lastModifiedBy(laboratory.getLastModifiedBy())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(laboratory.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(laboratory.getLastModifiedBy()))
+                        .build())
                 .lastModifiedDate(laboratory.getLastModifiedDate())
                 .build();
     }

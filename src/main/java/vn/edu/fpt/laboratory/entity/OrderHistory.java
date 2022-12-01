@@ -35,13 +35,15 @@ public class OrderHistory extends Auditor {
     private String reason;
     @Field(name = "status")
     private String status;
+    @Field(name = "materialId")
+    private String materialId;
+    @Field(name = "amount")
+    private Integer amount;
     @Field(name = "order_from")
     private LocalDateTime orderFrom;
     @Field(name = "order_to")
     private LocalDateTime orderTo;
     @Field(name = "actually_return")
-    private LocalDateTime actuallyReturn;
-    @Field(name = "order_by")
-    @DBRef(lazy = true)
-    private MemberInfo orderBy;
+    @Builder.Default
+    private LocalDateTime actuallyReturn = null;
 }

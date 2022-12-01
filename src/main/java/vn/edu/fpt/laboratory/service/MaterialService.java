@@ -20,17 +20,21 @@ import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
  **/
 public interface MaterialService {
 
-    CreateMaterialResponse createMaterial(CreateMaterialRequest request);
+    CreateMaterialResponse createMaterial(String labId, CreateMaterialRequest request);
 
     void updateMaterial(String materialId, UpdateMaterialRequest  request);
 
-    void deleteMaterial(String materialId);
+    void deleteMaterial(String laboratoryId, String materialId);
 
-    PageableResponse<GetMaterialResponse> getMaterial();
+    PageableResponse<GetMaterialResponse> getMaterial(GetMaterialRequest request);
 
     GetMaterialDetailResponse getMaterialId(String materialId);
 
     OrderMaterialResponse orderMaterial(String materialId, OrderMaterialRequest request);
 
     void returnMaterial(String orderId, ReturnMaterialRequest request);
+
+    void removeImage(String materialId, String imageId);
+
+    void addImage(String materialId, AddImageRequest request);
 }

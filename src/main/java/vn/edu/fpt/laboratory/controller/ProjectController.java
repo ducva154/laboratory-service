@@ -7,6 +7,7 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
+import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -32,4 +33,8 @@ public interface ProjectController {
 
     @GetMapping("/{project-id}/members")
     ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInProject(@PathVariable(name = "project-id") String projectId);
+
+    @DeleteMapping("/{project-id}/members/{member-id}")
+    ResponseEntity<GeneralResponse<RemoveMemberFromProjectResponse>> removeMemberFromProject(@PathVariable(name = "project-id") String projectId, @PathVariable(name = "member-id") String memberId);
+
 }
