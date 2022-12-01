@@ -105,7 +105,7 @@ public class ProjectControllerImpl implements ProjectController {
 
     @Override
     public ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInProject(String projectId) {
-        return null;
+        return responseFactory.response(projectService.getMemberInProject(projectId));
     }
 
     @Override
