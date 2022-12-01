@@ -108,8 +108,8 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<GetMemberResponse>> getMemberInLaboratory(String labId) {
-        return null;
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(String labId) {
+        return responseFactory.response(laboratoryService.getMemberInLab(labId));
     }
 
     @Override

@@ -28,6 +28,13 @@ public class PageableResponse<T> implements Serializable {
     private Integer numberOfElements;
     private List<T> items;
 
+    public PageableResponse(List<T> items) {
+        this.currentPage = 1;
+        this.currentSize =1;
+        this.totalPage = 1;
+        this.numberOfElements = items.size();
+        this.items = items;
+    }
     public PageableResponse(PageableRequest pageable, Long totalElements, List<T> items) {
         this.currentPage = pageable.getPage()+1;
         this.currentSize = pageable.getSize();

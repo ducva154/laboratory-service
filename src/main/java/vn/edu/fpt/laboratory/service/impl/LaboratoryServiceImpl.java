@@ -111,6 +111,8 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .laboratoryId(laboratory.getLaboratoryId())
                 .laboratoryName(laboratory.getLaboratoryName())
                 .major(laboratory.getMajor())
+                .members(laboratory.getMembers().size())
+                .description(laboratory.getDescription())
                 .projects(laboratory.getProjects().stream()
                         .map(this::convertProjectToGetProjectResponse)
                         .collect(Collectors.toList()))
@@ -139,6 +141,26 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .projectName(project.getProjectName())
                 .description(project.getDescription())
                 .members(project.getMembers().size())
+                .build();
+    }
+
+    @Override
+    public PageableResponse<GetMemberResponse> getMemberInLab(String labId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab ID not exist"));
+        List<MemberInfo> memberInfos = laboratory.getMembers();
+        List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberResponse).collect(Collectors.toList());
+        return new PageableResponse<>( getMemberResponses);
+    }
+
+    private GetMemberResponse convertMemberToGetMemberResponse(MemberInfo memberInfo) {
+        return GetMemberResponse.builder()
+                .memberId(memberInfo.getMemberId())
+                .role(memberInfo.getRole())
+                .userInfo(UserInfoResponse.builder()
+                        .accountId(memberInfo.getAccountId())
+                        .userInfo(userInfoService.getUserInfo(memberInfo.getAccountId()))
+                        .build())
                 .build();
     }
 

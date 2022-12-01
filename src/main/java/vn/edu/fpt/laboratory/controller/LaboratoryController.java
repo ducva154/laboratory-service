@@ -57,7 +57,7 @@ public interface LaboratoryController {
     ResponseEntity<GeneralResponse<GetLaboratoryDetailResponse>> getLaboratoryDetail(@PathVariable(name = "lab-id") String labId);
 
     @GetMapping("/{lab-id}/members")
-    ResponseEntity<GeneralResponse<GetMemberResponse>> getMemberInLaboratory(@PathVariable(name = "lab-id") String labId);
+    ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(@PathVariable(name = "lab-id") String labId);
 
     @DeleteMapping("/{lab-id}/members/{member-id}")
     ResponseEntity<GeneralResponse<RemoveMemberFromLaboratoryResponse>> removeMemberFromLaboratory(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);

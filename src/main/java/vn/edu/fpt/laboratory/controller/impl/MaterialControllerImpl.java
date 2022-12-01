@@ -56,8 +56,51 @@ public class MaterialControllerImpl implements MaterialController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial() {
-        return null;
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial(String materialId,
+                                                                                              String materialName,
+                                                                                              String materialNameSortBy,
+                                                                                              String description,
+                                                                                              String status,
+                                                                                              String statusSortBy,
+                                                                                              String createdBy,
+                                                                                              String createdDateFrom,
+                                                                                              String createdDateTo,
+                                                                                              String createdDateSortBy,
+                                                                                              String lastModifiedBy,
+                                                                                              String lastModifiedDateFrom,
+                                                                                              String lastModifiedDateTo,
+                                                                                              String lastModifiedDateSortBy,
+                                                                                              Integer page,
+                                                                                              Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if(Objects.nonNull(materialNameSortBy)) {
+            sortableRequests.add(new SortableRequest("material_name", materialNameSortBy));
+        }
+        if(Objects.nonNull(statusSortBy)) {
+            sortableRequests.add(new SortableRequest("status", statusSortBy));
+        }
+        if(Objects.nonNull(createdDateSortBy)) {
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if(Objects.nonNull(lastModifiedDateSortBy)) {
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
+        GetMaterialRequest request = GetMaterialRequest.builder()
+                .materialId(materialId)
+                .materialName(materialName)
+                .description(description)
+                .status(status)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(materialService.getMaterial(request));
     }
 
     @Override

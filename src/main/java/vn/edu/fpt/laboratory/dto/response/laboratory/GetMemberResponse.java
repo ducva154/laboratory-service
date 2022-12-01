@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 
 import java.io.Serializable;
 
@@ -20,5 +21,8 @@ import java.io.Serializable;
 public class GetMemberResponse implements Serializable {
 
     private static final long serialVersionUID = -1205470045971314176L;
+    private String memberId;
+    private String role;
+    private UserInfoResponse userInfo;
 
 }

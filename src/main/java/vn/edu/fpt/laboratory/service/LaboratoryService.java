@@ -1,13 +1,11 @@
 package vn.edu.fpt.laboratory.service;
 
+import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.response.laboratory.CreateLaboratoryResponse;
-import vn.edu.fpt.laboratory.dto.response.laboratory.GetLaboratoryContainerResponse;
-import vn.edu.fpt.laboratory.dto.response.laboratory.GetLaboratoryDetailResponse;
-import vn.edu.fpt.laboratory.dto.response.laboratory.GetLaboratoryResponse;
+import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 
 /**
  * @author : Hoang Lam
@@ -27,4 +25,6 @@ public interface LaboratoryService {
     GetLaboratoryDetailResponse getLaboratoryDetail(String labId);
 
     GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request);
+
+    PageableResponse<GetMemberResponse> getMemberInLab(String labId);
 }
