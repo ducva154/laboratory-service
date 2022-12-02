@@ -101,7 +101,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             if (laboratoryRepository.findByLaboratoryName(request.getLaboratoryName()).isPresent()) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory name already in database");
             }
-            log.info("Update file name: {}", request.getLaboratoryName());
+            log.info("Update Laboratory name: {}", request.getLaboratoryName());
             laboratory.setLaboratoryName(request.getLaboratoryName());
         }
         try {
