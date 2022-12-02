@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
+import vn.edu.fpt.laboratory.constant.MaterialStatusEnum;
 import vn.edu.fpt.laboratory.entity.common.Auditor;
 
 import java.util.ArrayList;
@@ -37,7 +38,8 @@ public class Material extends Auditor {
     @Field(name = "description")
     private String description;
     @Field(name = "status")
-    private String status;
+    @Builder.Default
+    private String status = MaterialStatusEnum.FREE.getStatus();
     @Field(name = "amount")
     private Integer amount;
     @Field(name = "images")

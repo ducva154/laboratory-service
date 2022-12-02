@@ -96,11 +96,11 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory id not found"));
 
-        if (Objects.nonNull(request.getClass())) {
+        if (Objects.nonNull(request.getLaboratoryName())) {
             if (laboratoryRepository.findByLaboratoryName(request.getLaboratoryName()).isPresent()) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory name already in database");
             }
-            log.info("Update file name: {}", request.getLaboratoryName());
+            log.info("Update Laboratory name: {}", request.getLaboratoryName());
             laboratory.setLaboratoryName(request.getLaboratoryName());
         }
         try {

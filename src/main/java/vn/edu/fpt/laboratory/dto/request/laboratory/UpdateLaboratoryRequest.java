@@ -16,7 +16,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Data
 @Builder
-
 public class UpdateLaboratoryRequest implements Serializable {
     private static final long serialVersionUID = -4241640918694446022L;
     private String laboratoryName;
