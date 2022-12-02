@@ -21,5 +21,9 @@ import java.io.Serializable;
 public class UpdateLaboratoryRequest implements Serializable {
     private static final long serialVersionUID = -4241640918694446022L;
     private String laboratoryName;
+    private String description;
+    private String major;
+    private String ownerBy;
+    private String projectName;
 
 }

@@ -6,10 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
-import vn.edu.fpt.laboratory.dto.response.member.AddMemberToLaboratoryResponse;
-import vn.edu.fpt.laboratory.dto.response.member.AddMemberToProjectResponse;
-import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
-import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromProjectResponse;
+import vn.edu.fpt.laboratory.dto.request.member.UpdateMemberInfoRequest;
 
 /**
  * @author : Hoang Lam
@@ -22,12 +19,24 @@ import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromProjectResponse
 public interface MemberController {
 
     @PostMapping("/{project-id}/member")
-    ResponseEntity<GeneralResponse<AddMemberToProjectResponse>> addMemberToProject(@PathVariable(name = "project-id") String projectId, @RequestBody AddMemberToProjectRequest request);
+    ResponseEntity<GeneralResponse<Object>> addMemberToProject(@PathVariable(name = "project-id") String projectId, @RequestBody AddMemberToProjectRequest request);
 
     @PostMapping("/{lab-id}/member")
-    ResponseEntity<GeneralResponse<AddMemberToLaboratoryResponse>> addMemberToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody AddMemberToLaboratoryRequest request);
+    ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody AddMemberToLaboratoryRequest request);
 
     @PutMapping("/{member-id}")
-    ResponseEntity<GeneralResponse<Object>> updateMember(@PathVariable(name = "member-id") String memberId, @RequestBody UpdateMemberRequest request);
+    ResponseEntity<GeneralResponse<Object>> updateMember(@PathVariable(name = "member-id") String memberId, @RequestBody UpdateMemberInfoRequest request);
+
+    @DeleteMapping("/{project-id}/{member-id}")
+    ResponseEntity<GeneralResponse<Object>> removeMemberFromProject(
+            @PathVariable("project-id") String projectId,
+            @PathVariable("member-id") String memberId
+    );
+
+    @DeleteMapping("/{lab-id}/{member-id}")
+    ResponseEntity<GeneralResponse<Object>> removeMemberFromlabotory(
+            @PathVariable("lab-id") String labId,
+            @PathVariable("member-id") String memberId
+    );
 
 }

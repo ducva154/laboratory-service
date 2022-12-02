@@ -1,9 +1,16 @@
 package vn.edu.fpt.laboratory.service;
 
+import com.amazonaws.services.managedblockchain.model.UpdateMemberRequest;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
-import vn.edu.fpt.laboratory.dto.response.member.*;
+import vn.edu.fpt.laboratory.dto.request.member.UpdateMemberInfoRequest;
+import vn.edu.fpt.laboratory.dto.response.member.AddMemberToLaboratoryResponse;
+import vn.edu.fpt.laboratory.dto.response.member.AddMemberToProjectResponse;
+import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
+import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromProjectResponse;
 
 /**
  * @author : Hoang Lam
@@ -14,13 +21,14 @@ import vn.edu.fpt.laboratory.dto.response.member.*;
  **/
 public interface MemberInfoService {
 
-    AddMemberToProjectResponse addMemberToProject(String projectId, AddMemberToProjectRequest request);
+    void addMemberToProject(String projectId, AddMemberToProjectRequest request);
 
-    AddMemberToLaboratoryResponse addMemberToLaboratory(String labId, @RequestBody AddMemberToLaboratoryRequest request);
+    void addMemberToLaboratory(String labId, @RequestBody AddMemberToLaboratoryRequest request);
 
-    void updateMember(String memberId);
+    void updateMember(String memberId, UpdateMemberInfoRequest request);
 
-    RemoveMemberFromProjectResponse removeMemberFromProject(String projectId, String memberId);
+    void removeMemberFromProject(String projectId, String memberId);
 
-    RemoveMemberFromLaboratoryResponse removeMemberFromLaboratory(String labId, String memberId);
+    void removeMemberFromlabotory(String labId, String memberId);
+
 }

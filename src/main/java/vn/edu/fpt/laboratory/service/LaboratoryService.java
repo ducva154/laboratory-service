@@ -5,6 +5,7 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 
 /**
@@ -27,4 +28,6 @@ public interface LaboratoryService {
     GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request);
 
     PageableResponse<GetMemberResponse> getMemberInLab(String labId);
+
+    void removeMemberFromLaboratory(String labId, String memberId);
 }

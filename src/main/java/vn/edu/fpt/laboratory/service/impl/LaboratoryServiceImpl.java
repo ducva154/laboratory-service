@@ -16,16 +16,20 @@ import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
+import vn.edu.fpt.laboratory.entity.AppConfig;
 import vn.edu.fpt.laboratory.entity.Laboratory;
 import vn.edu.fpt.laboratory.entity.MemberInfo;
 import vn.edu.fpt.laboratory.entity.Project;
 import vn.edu.fpt.laboratory.exception.BusinessException;
+import vn.edu.fpt.laboratory.repository.AppConfigRepository;
 import vn.edu.fpt.laboratory.repository.BaseMongoRepository;
 import vn.edu.fpt.laboratory.repository.LaboratoryRepository;
 import vn.edu.fpt.laboratory.repository.MemberInfoRepository;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
+import vn.edu.fpt.laboratory.service.ProjectService;
 import vn.edu.fpt.laboratory.service.UserInfoService;
 import vn.edu.fpt.laboratory.utils.AuditorUtils;
 
@@ -49,6 +53,8 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     private final LaboratoryRepository laboratoryRepository;
     private final MemberInfoRepository memberInfoRepository;
     private final UserInfoService userInfoService;
+    private final AppConfigRepository appConfigRepository;
+    private final ProjectService projectService;
     private final MongoTemplate mongoTemplate;
 
     @Override
@@ -92,8 +98,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
-    public void
-    updateLaboratory(String labId, UpdateLaboratoryRequest request) {
+    public void updateLaboratory(String labId, UpdateLaboratoryRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory id not found"));
 
@@ -101,8 +106,18 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             if (laboratoryRepository.findByLaboratoryName(request.getLaboratoryName()).isPresent()) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory name already in database");
             }
-            log.info("Update Laboratory name: {}", request.getLaboratoryName());
             laboratory.setLaboratoryName(request.getLaboratoryName());
+        }
+        if (Objects.nonNull(request.getDescription())) {
+            laboratory.setDescription(request.getDescription());
+        }
+        if (Objects.nonNull(request.getMajor())) {
+            laboratory.setDescription(request.getMajor());
+        }
+        if(Objects.nonNull(request.getOwnerBy()) && ObjectId.isValid(request.getOwnerBy())){
+            log.info("Update Laboratory name: {}", request.getLaboratoryName());
+            MemberInfo memberInfo = laboratory.getMembers().stream().filter((v) -> v.getMemberId().equals(request.getOwnerBy())).findAny().orElseThrow();
+            laboratory.setOwnerBy(memberInfo);
         }
         try {
             laboratoryRepository.save(laboratory);
@@ -174,6 +189,33 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         List<MemberInfo> memberInfos = laboratory.getMembers();
         List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberResponse).collect(Collectors.toList());
         return new PageableResponse<>( getMemberResponses);
+    }
+
+    @Override
+    public void removeMemberFromLaboratory(String labId, String memberId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Role id not found"));
+
+        List<Project> projects = laboratory.getProjects();
+        projects.stream().map(Project::getProjectId).forEach((projectId) -> projectService.removeMemberFromProject(projectId, memberId));
+
+        List<MemberInfo> memberInfos = laboratory.getMembers();
+        Optional<MemberInfo> memberInLabo = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
+
+        if (memberInLabo.isEmpty()) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found");
+        }
+        if (memberInfos.remove(memberInLabo.get())) {
+            laboratory.setMembers(memberInfos);
+            try {
+                laboratoryRepository.save(laboratory);
+                log.info("Remove permission from role success");
+            } catch (Exception ex) {
+                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update labo in database after remove member");
+            }
+        } else {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from labo");
+        }
     }
 
     private GetMemberResponse convertMemberToGetMemberResponse(MemberInfo memberInfo) {
