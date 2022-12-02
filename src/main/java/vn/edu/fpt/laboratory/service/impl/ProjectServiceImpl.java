@@ -16,6 +16,7 @@ import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
+import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -208,6 +209,26 @@ public class ProjectServiceImpl implements ProjectService {
         return new PageableResponse<>(request, totalElements, getProjectResponses);
     }
 
+    @Override
+    public PageableResponse<GetMemberResponse> getMemberInProject(String projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+        List<MemberInfo> memberInfos = project.getMembers();
+        List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberInfoResponse).collect(Collectors.toList());
+        return new PageableResponse<>(getMemberResponses);
+    }
+
+    private GetMemberResponse convertMemberToGetMemberInfoResponse(MemberInfo memberInfo) {
+        return GetMemberResponse.builder()
+                .memberId(memberInfo.getMemberId())
+                .role(memberInfo.getRole())
+                .userInfo(UserInfoResponse.builder()
+                        .accountId(memberInfo.getAccountId())
+                        .userInfo(userInfoService.getUserInfo(memberInfo.getAccountId()))
+                        .build())
+                .build();
+    }
+
     private GetProjectResponse convertProjectToGetProjectResponse(Project project) {
         return GetProjectResponse.builder()
                 .projectId(project.getProjectId())
@@ -241,6 +262,12 @@ public class ProjectServiceImpl implements ProjectService {
                 .lastModifiedDate(project.getLastModifiedDate())
                 .build();
     }
+
+    @Override
+    public void removeMemberFromProject(String projectId, String memberId) {
+
+    }
+
 
     private MemberInfoResponse convertMemberToMemberInfoResponse(MemberInfo memberInfo) {
         return MemberInfoResponse.builder()

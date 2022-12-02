@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.laboratory.entity.common.UserInfo;
+import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.service.UserInfoService;
 
 /**
@@ -27,6 +27,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     public UserInfo getUserInfo(String accountId) {
         try {
             String userInfoStr = redisTemplate.opsForValue().get(String.format("userinfo:%s", accountId));
+            log.info("User info str: {}", userInfoStr);
             return objectMapper.readValue(userInfoStr, UserInfo.class);
         }catch (Exception ex){
             log.error("Can't get userinfo in redis: {}", ex.getMessage());

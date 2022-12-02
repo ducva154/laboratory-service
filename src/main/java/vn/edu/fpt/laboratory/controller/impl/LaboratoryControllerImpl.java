@@ -62,7 +62,8 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateLaboratory(String labId, UpdateLaboratoryRequest request) {
-        return null;
+        laboratoryService.updateLaboratory(labId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
@@ -85,7 +86,8 @@ public class LaboratoryControllerImpl implements LaboratoryController {
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> deleteLaboratory(String labId) {
-        return null;
+        laboratoryService.deleteLaboratory(labId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override

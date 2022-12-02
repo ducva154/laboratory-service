@@ -92,13 +92,36 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
-    public void updateLaboratory(String labId, UpdateLaboratoryRequest request) {
+    public void
+    updateLaboratory(String labId, UpdateLaboratoryRequest request) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory id not found"));
 
+        if (Objects.nonNull(request.getLaboratoryName())) {
+            if (laboratoryRepository.findByLaboratoryName(request.getLaboratoryName()).isPresent()) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory name already in database");
+            }
+            log.info("Update Laboratory name: {}", request.getLaboratoryName());
+            laboratory.setLaboratoryName(request.getLaboratoryName());
+        }
+        try {
+            laboratoryRepository.save(laboratory);
+            log.info("Update Laboratory success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save Laboratory in database when update: " + ex.getMessage());
+        }
     }
 
     @Override
     public void deleteLaboratory(String labId) {
-
+        laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not found"));
+        try {
+            laboratoryRepository.deleteById(labId);
+            log.info("Delete Laboratory: {} success", labId);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete Laboratory by ID: " + ex.getMessage());
+        }
     }
 
     @Override
