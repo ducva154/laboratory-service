@@ -92,11 +92,12 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
-    public void updateLaboratory(String labId, UpdateLaboratoryRequest request) {
+    public void
+    updateLaboratory(String labId, UpdateLaboratoryRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory id not found"));
 
-        if (Objects.nonNull(request.getClass())) {
+        if (Objects.nonNull(request.getLaboratoryName())) {
             if (laboratoryRepository.findByLaboratoryName(request.getLaboratoryName()).isPresent()) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory name already in database");
             }

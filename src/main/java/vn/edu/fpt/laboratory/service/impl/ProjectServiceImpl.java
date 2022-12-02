@@ -263,6 +263,11 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
     }
 
+    @Override
+    public void removeMemberFromProject(String projectId, String memberId) {
+
+    }
+
 
     private MemberInfoResponse convertMemberToMemberInfoResponse(MemberInfo memberInfo) {
         return MemberInfoResponse.builder()
