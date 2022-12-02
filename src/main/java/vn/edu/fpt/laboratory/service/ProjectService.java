@@ -1,6 +1,7 @@
 package vn.edu.fpt.laboratory.service;
 
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
@@ -30,4 +31,5 @@ public interface ProjectService {
     GetProjectDetailResponse getProjectDetailByProjectId(String projectId);
 
     void removeMemberFromProject(String projectId, String memberId);
+
 }

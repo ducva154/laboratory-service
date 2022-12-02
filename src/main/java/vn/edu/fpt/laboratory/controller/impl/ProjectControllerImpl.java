@@ -109,8 +109,9 @@ public class ProjectControllerImpl implements ProjectController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<RemoveMemberFromProjectResponse>> removeMemberFromProject(String projectId, String memberId) {
-        return null;
+    public ResponseEntity<GeneralResponse<Object>> removeMemberFromProject(String projectId, String memberId) {
+        projectService.removeMemberFromProject(projectId, memberId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
 

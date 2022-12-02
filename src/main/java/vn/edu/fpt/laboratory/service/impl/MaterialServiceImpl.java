@@ -107,6 +107,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .build();
     }
 
+
     @Override
     public void updateMaterial(String laboratoryId, String materialId, UpdateMaterialRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(laboratoryId)

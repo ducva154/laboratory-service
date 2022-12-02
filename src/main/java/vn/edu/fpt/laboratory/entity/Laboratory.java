@@ -55,4 +55,6 @@ public class Laboratory extends Auditor {
     @DBRef(lazy = true)
     @Builder.Default
     private List<Material> materials = new ArrayList<>();
+
+
 }

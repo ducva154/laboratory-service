@@ -1,6 +1,5 @@
 package vn.edu.fpt.laboratory.service;
 
-import org.springframework.web.bind.annotation.RequestBody;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;

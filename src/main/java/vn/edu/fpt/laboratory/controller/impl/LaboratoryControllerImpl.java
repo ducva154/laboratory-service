@@ -18,7 +18,6 @@ import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
@@ -135,7 +134,8 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<RemoveMemberFromLaboratoryResponse>> removeMemberFromLaboratory(String labId, String memberId) {
-        return null;
+    public ResponseEntity<GeneralResponse<Object>> removeMemberFromLaboratory(String labId, String memberId) {
+        laboratoryService.removeMemberFromLaboratory(labId, memberId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 }

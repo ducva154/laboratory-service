@@ -2,9 +2,11 @@ package vn.edu.fpt.laboratory.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+import vn.edu.fpt.laboratory.entity.Material;
 import vn.edu.fpt.laboratory.entity.MemberInfo;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author : Hoang Lam
@@ -15,6 +17,7 @@ import java.util.List;
  **/
 @Repository
 public interface MemberInfoRepository extends MongoRepository<MemberInfo, String> {
+    Optional<Material> findByMemberName(String materialName);
 
     List<MemberInfo> findAllByAccountId(String accountId);
 }
