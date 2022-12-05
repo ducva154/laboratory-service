@@ -99,6 +99,11 @@ public class ProjectControllerImpl implements ProjectController {
     }
 
     @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProjectByLabId(String labId) {
+        return responseFactory.response(projectService.getProjectByLaboratoryId(labId));
+    }
+
+    @Override
     public ResponseEntity<GeneralResponse<GetProjectDetailResponse>> getProjectDetail(String projectId) {
         return responseFactory.response(projectService.getProjectDetailByProjectId(projectId));
     }
