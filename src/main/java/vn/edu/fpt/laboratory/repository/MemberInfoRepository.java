@@ -18,6 +18,5 @@ import java.util.Optional;
 @Repository
 public interface MemberInfoRepository extends MongoRepository<MemberInfo, String> {
 
-
     List<MemberInfo> findAllByAccountId(String accountId);
 }

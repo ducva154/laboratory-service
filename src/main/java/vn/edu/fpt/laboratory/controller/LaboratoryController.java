@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
@@ -76,5 +77,13 @@ public interface LaboratoryController {
     @DeleteMapping("/{lab-id}/members/{member-id}")
     ResponseEntity<GeneralResponse<Object>> removeMemberFromLaboratory(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);
 
+    @PostMapping("/{lab-id}/apply")
+    ResponseEntity<GeneralResponse<ApplyLaboratoryResponse>> applyToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody ApplyLaboratoryRequest request);
 
+//    @GetMapping("/{lab-id}/applications")
+//    ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(@PathVariable(name = "lab-id") String labId,
+//        @RequestParam(value = "status", required = false) String status);
+//
+//    @GetMapping("/applications/{application-id}")
+//    ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
 }

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  **/
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public enum ApplicationStatus {
+public enum ApplicationStatusEnum {
 
     WAITING_FOR_APPROVE("WAITING_FOR_APPROVAL"),
     APPROVED("APPROVED"),
@@ -22,7 +22,7 @@ public enum ApplicationStatus {
 
     private String statusName;
 
-    ApplicationStatus(String statusName) {
+    ApplicationStatusEnum(String statusName) {
         this.statusName = statusName;
     }
 }

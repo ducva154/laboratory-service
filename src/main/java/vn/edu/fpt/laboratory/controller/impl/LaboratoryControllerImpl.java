@@ -9,6 +9,7 @@ import vn.edu.fpt.laboratory.controller.LaboratoryController;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.SortableRequest;
+import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
@@ -137,5 +138,10 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     public ResponseEntity<GeneralResponse<Object>> removeMemberFromLaboratory(String labId, String memberId) {
         laboratoryService.removeMemberFromLaboratory(labId, memberId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<ApplyLaboratoryResponse>> applyToLaboratory(String labId, ApplyLaboratoryRequest request) {
+        return responseFactory.response(laboratoryService.applyToLaboratory(labId, request));
     }
 }

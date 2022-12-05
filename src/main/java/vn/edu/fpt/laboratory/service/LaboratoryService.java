@@ -2,6 +2,7 @@ package vn.edu.fpt.laboratory.service;
 
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
@@ -30,4 +31,6 @@ public interface LaboratoryService {
     PageableResponse<GetMemberResponse> getMemberInLab(String labId);
 
     void removeMemberFromLaboratory(String labId, String memberId);
+
+    ApplyLaboratoryResponse applyToLaboratory(String labId, ApplyLaboratoryRequest request);
 }

@@ -1,19 +1,14 @@
 package vn.edu.fpt.laboratory.service.impl;
 
-import com.amazonaws.services.managedblockchain.model.UpdateMemberRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.laboratory.constant.MaterialStatusEnum;
+import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.member.UpdateMemberInfoRequest;
-import vn.edu.fpt.laboratory.dto.response.member.AddMemberToLaboratoryResponse;
-import vn.edu.fpt.laboratory.dto.response.member.AddMemberToProjectResponse;
-import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
-import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromProjectResponse;
 import vn.edu.fpt.laboratory.entity.*;
 import vn.edu.fpt.laboratory.exception.BusinessException;
 import vn.edu.fpt.laboratory.repository.LaboratoryRepository;
@@ -72,13 +67,20 @@ public class MemberServiceImpl implements MemberInfoService {
     public void addMemberToLaboratory(String labId, AddMemberToLaboratoryRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
-        Optional<MemberInfo> memberInProject = laboratory.getMembers().stream().filter(v -> v.getMemberId().equals(request.getMemberId()))
+        Optional<MemberInfo> memberInProject = laboratory.getMembers().stream().filter(v -> v.getMemberId().equals(request.getAccountId()))
                 .findAny();
         if (memberInProject.isPresent()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member already contain this project");
         }
-        MemberInfo memberInfo = memberInfoRepository.findById(request.getMemberId())
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found"));
+        MemberInfo memberInfo = MemberInfo.builder()
+                .accountId(request.getAccountId())
+                .role(LaboratoryRoleEnum.MEMBER.getRole())
+                .build();
+        try {
+            memberInfo = memberInfoRepository.save(memberInfo);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save member info to database: " + ex.getMessage());
+        }
         List<MemberInfo> memberInfos = laboratory.getMembers();
         memberInfos.add(memberInfo);
         laboratory.setMembers(memberInfos);

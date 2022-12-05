@@ -13,6 +13,7 @@ import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
@@ -305,4 +306,8 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .build();
     }
 
+    @Override
+    public ApplyLaboratoryResponse applyToLaboratory(String labId, ApplyLaboratoryRequest request) {
+        return null;
+    }
 }

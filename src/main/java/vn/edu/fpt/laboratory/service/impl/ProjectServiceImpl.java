@@ -7,12 +7,14 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.laboratory.config.kafka.producer.CreateWorkspaceProducer;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ProjectRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.event.CreateWorkspaceEvent;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
@@ -55,6 +57,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final MemberInfoRepository memberInfoRepository;
     private final UserInfoService userInfoService;
     private final MongoTemplate mongoTemplate;
+    private final CreateWorkspaceProducer createWorkspaceProducer;
 
     @Override
     @Transactional
@@ -116,6 +119,11 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException("Can't update laboratory in database: " + ex.getMessage());
         }
 
+        createWorkspaceProducer.sendMessage(CreateWorkspaceEvent.builder()
+                        .projectId(project.getProjectId())
+                        .accountId(project.getCreatedBy())
+                .build());
+
         return CreateProjectResponse.builder()
                 .projectId(project.getProjectId())
                 .build();
@@ -160,26 +168,26 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteProject(String labId, String projectId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
-        log.info("Lab is: {}", laboratory);
-         log.info("Current project: {}", laboratory.getProjects());
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
-        List<Project> projects = laboratory.getProjects();
-        log.info("Projects get from lab: {}", projects);
-        projects.remove(project);
-        log.info("Project will remove: {}", project);
-        log.info("Projects after remove: {}", projects);
 
-        try {
-            projectRepository.deleteById(projectId);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't delete project in database");
+        List<Project> projects = laboratory.getProjects();
+        if (projects.stream().noneMatch(v -> v.getProjectId().equals(projectId))){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist");
+        }
+        if(projects.removeIf(v -> v.getProjectId().equals(projectId))){
+            log.info("Delete success");
+        }else{
+            log.error("Can't delete project");
         }
         laboratory.setProjects(projects);
         try {
             laboratoryRepository.save(laboratory);
         } catch (Exception ex) {
             throw new BusinessException("Can't update laboratory in database");
+        }
+        try {
+            projectRepository.deleteById(projectId);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete project in database");
         }
     }
 
@@ -294,7 +302,7 @@ public class ProjectServiceImpl implements ProjectService {
             project.setMembers(memberInfos);
             try {
                 projectRepository.save(project);
-                log.info("Remove member from Project success");
+                log.info("Remove memnber from Project success");
             } catch (Exception ex) {
                 throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove Project");
             }
