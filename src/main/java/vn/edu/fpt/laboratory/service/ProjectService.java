@@ -10,6 +10,8 @@ import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
 
+import java.util.List;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -26,6 +28,9 @@ public interface ProjectService {
     void deleteProject(String labId, String projectId);
 
     PageableResponse<GetProjectResponse> getProjectByCondition(_GetProjectRequest request);
+
+    PageableResponse<GetProjectResponse> getProjectByLaboratoryId(String labId);
+
     PageableResponse<GetMemberResponse> getMemberInProject(String projectId);
 
     GetProjectDetailResponse getProjectDetailByProjectId(String projectId);
