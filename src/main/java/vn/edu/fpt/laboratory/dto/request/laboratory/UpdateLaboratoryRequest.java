@@ -3,6 +3,7 @@ package vn.edu.fpt.laboratory.dto.request.laboratory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,10 +15,14 @@ import java.io.Serializable;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
 public class UpdateLaboratoryRequest implements Serializable {
     private static final long serialVersionUID = -4241640918694446022L;
     private String laboratoryName;
+    private String description;
+    private String major;
+    private String ownerBy;
 
 }
