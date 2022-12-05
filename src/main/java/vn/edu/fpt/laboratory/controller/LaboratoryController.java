@@ -13,7 +13,6 @@ import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.member.RemoveMemberFromLaboratoryResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 
 /**
@@ -75,6 +74,7 @@ public interface LaboratoryController {
     ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(@PathVariable(name = "lab-id") String labId);
 
     @DeleteMapping("/{lab-id}/members/{member-id}")
-    ResponseEntity<GeneralResponse<RemoveMemberFromLaboratoryResponse>> removeMemberFromLaboratory(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);
+    ResponseEntity<GeneralResponse<Object>> removeMemberFromLaboratory(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);
+
 
 }

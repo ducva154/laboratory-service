@@ -15,9 +15,11 @@ import java.io.Serializable;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
 public class AddMemberToLaboratoryRequest implements Serializable {
 
     private static final long serialVersionUID = -5847684556021978449L;
+    private String memberId;
 }

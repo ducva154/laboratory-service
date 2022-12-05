@@ -54,6 +54,6 @@ public interface ProjectController {
     ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInProject(@PathVariable(name = "project-id") String projectId);
 
     @DeleteMapping("/{project-id}/members/{member-id}")
-    ResponseEntity<GeneralResponse<RemoveMemberFromProjectResponse>> removeMemberFromProject(@PathVariable(name = "project-id") String projectId, @PathVariable(name = "member-id") String memberId);
+    ResponseEntity<GeneralResponse<Object>> removeMemberFromProject(@PathVariable(name = "project-id") String projectId, @PathVariable(name = "member-id") String memberId);
 
 }

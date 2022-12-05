@@ -13,6 +13,7 @@ import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
@@ -261,6 +262,31 @@ public class ProjectServiceImpl implements ProjectService {
                         .build())
                 .lastModifiedDate(project.getLastModifiedDate())
                 .build();
+    }
+
+    @Override
+    public void removeMemberFromProject(String projectId, String memberId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
+
+        List<MemberInfo> memberInfos = project.getMembers();
+        Optional<MemberInfo> memberInProject = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
+
+        if (memberInProject.isEmpty()) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromProject");
+        }
+
+        if (memberInfos.remove(memberInProject.get())) {
+            project.setMembers(memberInfos);
+            try {
+                projectRepository.save(project);
+                log.info("Remove memnber from Project success");
+            } catch (Exception ex) {
+                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove Project");
+            }
+        } else {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from Project");
+        }
     }
 
 
