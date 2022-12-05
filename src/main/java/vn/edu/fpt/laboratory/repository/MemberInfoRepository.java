@@ -17,7 +17,6 @@ import java.util.Optional;
  **/
 @Repository
 public interface MemberInfoRepository extends MongoRepository<MemberInfo, String> {
-    Optional<Material> findByMemberName(String materialName);
 
     List<MemberInfo> findAllByAccountId(String accountId);
 }
