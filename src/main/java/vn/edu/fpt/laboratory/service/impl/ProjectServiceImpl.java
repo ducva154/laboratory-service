@@ -160,20 +160,26 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteProject(String labId, String projectId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+        log.info("Lab is: {}", laboratory);
+         log.info("Current project: {}", laboratory.getProjects());
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
         List<Project> projects = laboratory.getProjects();
+        log.info("Projects get from lab: {}", projects);
         projects.remove(project);
+        log.info("Project will remove: {}", project);
+        log.info("Projects after remove: {}", projects);
+
+        try {
+            projectRepository.deleteById(projectId);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete project in database");
+        }
         laboratory.setProjects(projects);
         try {
             laboratoryRepository.save(laboratory);
         } catch (Exception ex) {
             throw new BusinessException("Can't update laboratory in database");
-        }
-        try {
-            projectRepository.delete(project);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't delete project in database");
         }
     }
 
@@ -288,7 +294,7 @@ public class ProjectServiceImpl implements ProjectService {
             project.setMembers(memberInfos);
             try {
                 projectRepository.save(project);
-                log.info("Remove memnber from Project success");
+                log.info("Remove member from Project success");
             } catch (Exception ex) {
                 throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove Project");
             }
