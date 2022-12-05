@@ -8,4 +8,7 @@ package vn.edu.fpt.laboratory.dto.request.laboratory;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 public class ApplyLaboratoryRequest {
+    //account-id
+    //reason
+    //cvKey
 }
