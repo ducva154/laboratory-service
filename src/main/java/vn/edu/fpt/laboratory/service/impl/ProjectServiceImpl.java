@@ -168,10 +168,16 @@ public class ProjectServiceImpl implements ProjectService {
     public void deleteProject(String labId, String projectId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+
         List<Project> projects = laboratory.getProjects();
-        projects.remove(project);
+        if (projects.stream().noneMatch(v -> v.getProjectId().equals(projectId))){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist");
+        }
+        if(projects.removeIf(v -> v.getProjectId().equals(projectId))){
+            log.info("Delete success");
+        }else{
+            log.error("Can't delete project");
+        }
         laboratory.setProjects(projects);
         try {
             laboratoryRepository.save(laboratory);
@@ -179,7 +185,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException("Can't update laboratory in database");
         }
         try {
-            projectRepository.delete(project);
+            projectRepository.deleteById(projectId);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete project in database");
         }
