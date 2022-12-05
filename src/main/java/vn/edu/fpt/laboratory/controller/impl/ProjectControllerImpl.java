@@ -99,8 +99,16 @@ public class ProjectControllerImpl implements ProjectController {
     }
 
     @Override
+    public ResponseEntity<GeneralResponse<Object>> deleteProject(String labId, String projectId) {
+        projectService.deleteProject(labId, projectId);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
     public ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProjectByLabId(String labId) {
         return responseFactory.response(projectService.getProjectByLaboratoryId(labId));
+
+
     }
 
     @Override
