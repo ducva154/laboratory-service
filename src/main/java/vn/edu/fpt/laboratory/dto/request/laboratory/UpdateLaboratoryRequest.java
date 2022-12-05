@@ -24,6 +24,5 @@ public class UpdateLaboratoryRequest implements Serializable {
     private String description;
     private String major;
     private String ownerBy;
-    private String projectName;
 
 }
