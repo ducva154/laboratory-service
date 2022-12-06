@@ -80,10 +80,10 @@ public interface LaboratoryController {
     @PostMapping("/{lab-id}/apply")
     ResponseEntity<GeneralResponse<ApplyLaboratoryResponse>> applyToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody ApplyLaboratoryRequest request);
 
-    @GetMapping("/{lab-id}/applications")
-    ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(@PathVariable(name = "lab-id") String labId,
-        @RequestParam(value = "status", required = false) String status);
-
-    @GetMapping("/applications/{application-id}")
-    ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
+//    @GetMapping("/{lab-id}/applications")
+//    ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(@PathVariable(name = "lab-id") String labId,
+//        @RequestParam(value = "status", required = false) String status);
+//
+//    @GetMapping("/applications/{application-id}")
+//    ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
 }
