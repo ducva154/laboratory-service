@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 
+import java.io.Serializable;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -17,8 +19,9 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 @NoArgsConstructor
 @Data
 @Builder
-public class GetLaboratoryContainerResponse {
-    
+public class GetLaboratoryContainerResponse implements Serializable {
+
+    private static final long serialVersionUID = -4293335061063944296L;
     private PageableResponse<GetLaboratoryResponse> joinedLaboratories;
     private PageableResponse<GetLaboratoryResponse> suggestLaboratories;
 }

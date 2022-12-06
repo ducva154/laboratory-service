@@ -33,4 +33,8 @@ public interface LaboratoryService {
     void removeMemberFromLaboratory(String labId, String memberId);
 
     ApplyLaboratoryResponse applyToLaboratory(String labId, ApplyLaboratoryRequest request);
+
+    GetApplicationDetailResponse getApplicationByApplicationId(String applicationId);
+
+    PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, String status);
 }

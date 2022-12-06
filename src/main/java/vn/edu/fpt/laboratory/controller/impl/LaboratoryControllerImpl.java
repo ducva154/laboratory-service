@@ -144,4 +144,14 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     public ResponseEntity<GeneralResponse<ApplyLaboratoryResponse>> applyToLaboratory(String labId, ApplyLaboratoryRequest request) {
         return responseFactory.response(laboratoryService.applyToLaboratory(labId, request));
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(String labId, String status) {
+        return responseFactory.response(laboratoryService.getApplicationByLabId(labId, status));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(String applicationId) {
+        return responseFactory.response(laboratoryService.getApplicationByApplicationId(applicationId));
+    }
 }

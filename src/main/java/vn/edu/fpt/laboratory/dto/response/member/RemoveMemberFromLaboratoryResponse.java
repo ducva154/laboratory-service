@@ -18,6 +18,5 @@ import java.io.Serializable;
 @Data
 @Builder
 public class RemoveMemberFromLaboratoryResponse implements Serializable {
-
     private static final long serialVersionUID = 6770339487345565338L;
 }

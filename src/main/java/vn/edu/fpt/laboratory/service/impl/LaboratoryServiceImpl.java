@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
@@ -17,15 +18,14 @@ import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
-import vn.edu.fpt.laboratory.entity.AppConfig;
+import vn.edu.fpt.laboratory.entity.Application;
 import vn.edu.fpt.laboratory.entity.Laboratory;
 import vn.edu.fpt.laboratory.entity.MemberInfo;
 import vn.edu.fpt.laboratory.entity.Project;
 import vn.edu.fpt.laboratory.exception.BusinessException;
-import vn.edu.fpt.laboratory.repository.AppConfigRepository;
+import vn.edu.fpt.laboratory.repository.ApplicationRepository;
 import vn.edu.fpt.laboratory.repository.BaseMongoRepository;
 import vn.edu.fpt.laboratory.repository.LaboratoryRepository;
 import vn.edu.fpt.laboratory.repository.MemberInfoRepository;
@@ -54,9 +54,9 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     private final LaboratoryRepository laboratoryRepository;
     private final MemberInfoRepository memberInfoRepository;
     private final UserInfoService userInfoService;
-    private final AppConfigRepository appConfigRepository;
     private final ProjectService projectService;
     private final MongoTemplate mongoTemplate;
+    private final ApplicationRepository applicationRepository;
 
     @Override
     @Transactional(rollbackFor = BusinessException.class)
@@ -308,6 +308,54 @@ public class LaboratoryServiceImpl implements LaboratoryService {
 
     @Override
     public ApplyLaboratoryResponse applyToLaboratory(String labId, ApplyLaboratoryRequest request) {
-        return null;
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
+        List<Application> applicationList = laboratory.getApplications();
+        if (Objects.nonNull(request.getAccountId())) {
+            if (applicationList.stream().anyMatch(m -> m.getAccountId().equals(request.getAccountId())) && applicationList.stream().anyMatch(v -> v.getStatus().equals(ApplicationStatusEnum.WAITING_FOR_APPROVE))) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Status is pending");
+            }
+        }
+        Application application = Application.builder()
+                .reason(request.getReason())
+                .cvKey(request.getCvKey())
+                .accountId(request.getAccountId())
+                .build();
+        try {
+            application = applicationRepository.save(application);
+            log.info("Apply CV to Lab success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't apply CV in database: " + ex.getMessage());
+        }
+        return ApplyLaboratoryResponse.builder()
+                .applicationId(application.getApplicationId())
+                .build();
+    }
+
+    @Override
+    public GetApplicationDetailResponse getApplicationByApplicationId(String applicationId) {
+        Application application = applicationRepository.findById(applicationId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST,"Application id is not exist"));
+        return GetApplicationDetailResponse.builder()
+                .status(application.getStatus())
+                .cvKey(application.getCvKey())
+                .reason(application.getReason())
+                .build();
+    }
+
+    @Override
+    public PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, String status) {
+        Laboratory laboratory = laboratoryRepository.findById(labId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab id is not exist"));
+        List<GetApplicationResponse> getApplicationResponses = laboratory.getApplications().stream().map(this::convertApplicationToGetApplicationResponse).collect(Collectors.toList());
+        return new PageableResponse<>(getApplicationResponses);
+
+    }
+
+    private GetApplicationResponse convertApplicationToGetApplicationResponse(Application application) {
+        return GetApplicationResponse.builder()
+                .applicationId(application.getApplicationId())
+                .status(application.getStatus())
+                .cvKey(application.getCvKey())
+                .reason(application.getReason())
+                .build();
     }
 }

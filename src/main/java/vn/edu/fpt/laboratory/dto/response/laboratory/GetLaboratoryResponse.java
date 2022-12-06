@@ -22,7 +22,6 @@ import java.io.Serializable;
 @Builder
 @JsonPropertyOrder({"laboratoryId", "laboratoryName", "description", "members", "projects", "major", "ownerBy"})
 public class GetLaboratoryResponse implements Serializable {
-
     private static final long serialVersionUID = 7221469874164451550L;
     private String laboratoryId;
     private String laboratoryName;
