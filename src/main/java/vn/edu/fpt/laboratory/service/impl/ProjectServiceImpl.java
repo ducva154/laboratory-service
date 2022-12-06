@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.laboratory.config.kafka.producer.CreateRepositoryProducer;
 import vn.edu.fpt.laboratory.config.kafka.producer.CreateWorkspaceProducer;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ProjectRoleEnum;
@@ -14,6 +15,7 @@ import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.event.CreateRepositoryEvent;
 import vn.edu.fpt.laboratory.dto.event.CreateWorkspaceEvent;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
@@ -58,6 +60,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserInfoService userInfoService;
     private final MongoTemplate mongoTemplate;
     private final CreateWorkspaceProducer createWorkspaceProducer;
+    private final CreateRepositoryProducer createRepositoryProducer;
 
     @Override
     @Transactional
@@ -120,6 +123,11 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         createWorkspaceProducer.sendMessage(CreateWorkspaceEvent.builder()
+                        .projectId(project.getProjectId())
+                        .accountId(project.getCreatedBy())
+                .build());
+
+        createRepositoryProducer.sendMessage(CreateRepositoryEvent.builder()
                         .projectId(project.getProjectId())
                         .accountId(project.getCreatedBy())
                 .build());

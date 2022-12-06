@@ -30,8 +30,6 @@ import vn.edu.fpt.laboratory.service.ProjectService;
 public class MemberControllerImpl implements MemberController {
     private final ResponseFactory responseFactory;
     private final MemberInfoService memberInfoService;
-    private final LaboratoryService laboratoryService;
-    private final ProjectService projectService;
     @Override
     public ResponseEntity<GeneralResponse<Object>> addMemberToProject(String projectId, AddMemberToProjectRequest request) {
         memberInfoService.addMemberToProject(projectId, request);
