@@ -119,6 +119,8 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             log.info("Update Laboratory name: {}", request.getLaboratoryName());
             MemberInfo memberInfo = laboratory.getMembers().stream().filter((v) -> v.getMemberId().equals(request.getOwnerBy())).findAny().orElseThrow();
             laboratory.setOwnerBy(memberInfo);
+        } else {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Invalid ownerBy");
         }
         try {
             laboratoryRepository.save(laboratory);

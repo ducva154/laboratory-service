@@ -263,13 +263,13 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
-        if (material.getStatus().equals(MaterialStatusEnum.ORDERED.getStatus())) {
+        if (material.getStatus().equals(MaterialStatusEnum.IN_USED.getStatus())) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
         } else if (request.getAmount() > material.getAmount()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
         } else if (request.getAmount() == material.getAmount()) {
             material.setAmount(0);
-            material.setStatus(MaterialStatusEnum.ORDERED.getStatus());
+            material.setStatus(MaterialStatusEnum.IN_USED.getStatus());
         } else {
             material.setAmount(material.getAmount() - request.getAmount());
         }
@@ -324,7 +324,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order history not exist"));
         Material material = materialRepository.findById(orderHistory.getMaterialId())
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material not exist"));
-        if (material.getStatus().equals(MaterialStatusEnum.ORDERED.getStatus())) {
+        if (material.getStatus().equals(MaterialStatusEnum.IN_USED.getStatus())) {
             material.setStatus(MaterialStatusEnum.FREE.getStatus());
         }
         material.setAmount(material.getAmount() + orderHistory.getAmount());
