@@ -19,8 +19,6 @@ import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
 @RequestMapping("${app.application-context}/public/api/v1/materials")
 public interface MaterialController {
 
-
-
     @DeleteMapping("/{material-id}/{image-id}")
     ResponseEntity<GeneralResponse<Object>> removeImage(@PathVariable(name = "material-id") String materialId, @PathVariable(name = "image-id") String imageId);
 
@@ -44,7 +42,8 @@ public interface MaterialController {
             @RequestParam(name = "last-modified-date-to", required = false) String lastModifiedDateTo,
             @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
             @RequestParam(name = "page", required = false) Integer page,
-            @RequestParam(name = "size", required = false) Integer size
+            @RequestParam(name = "size", required = false) Integer size,
+            @PathVariable(name = "laboratory-id") String laboratoryId
     );
 
     @GetMapping("/{material-id}")
@@ -57,4 +56,9 @@ public interface MaterialController {
 
     @PostMapping("/orders/{order-id}")
     ResponseEntity<GeneralResponse<Object>> returnMaterial(@PathVariable(name = "order-id") String orderId);
+
+    @GetMapping("/{laboratory-id}/materials")
+    ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterialByLabId(
+            @PathVariable(name = "laboratory-id") String laboratoryId
+    );
 }
