@@ -22,7 +22,6 @@ import java.util.List;
 @ToString
 @SuperBuilder
 public class GetProjectDetailResponse extends AuditableResponse {
-
     private static final long serialVersionUID = -21914764616961402L;
     private String projectId;
     private String projectName;

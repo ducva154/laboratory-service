@@ -8,11 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import vn.edu.fpt.laboratory.config.datetime.CustomDateDeserializer;
 import vn.edu.fpt.laboratory.config.datetime.CustomDateSerializer;
-import vn.edu.fpt.laboratory.config.datetime.CustomDateTimeDeserializer;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * @author : Hoang Lam
