@@ -407,4 +407,13 @@ public class MaterialServiceImpl implements MaterialService {
             throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
         }
     }
+
+    @Override
+    public PageableResponse<GetMaterialResponse> getMaterialByLabId(String labId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+        List<Material> materials = laboratory.getMaterials();
+        List<GetMaterialResponse> materialResponses = materials.stream().map(this::convertMaterialToGetMaterialResponse).collect(Collectors.toList());
+        return new PageableResponse<>(materialResponses);
+    }
 }

@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 public enum MaterialStatusEnum {
 
     FREE("FREE"),
-    ORDERED("ORDERED");
+    ORDERED("IN_USED");
 
     private final String status;
 }

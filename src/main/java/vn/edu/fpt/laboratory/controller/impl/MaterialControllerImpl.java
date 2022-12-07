@@ -68,7 +68,7 @@ public class MaterialControllerImpl implements MaterialController {
                                                                                               String lastModifiedDateTo,
                                                                                               String lastModifiedDateSortBy,
                                                                                               Integer page,
-                                                                                              Integer size) {
+                                                                                              Integer size, String laboratoryId) {
         List<SortableRequest> sortableRequests = new ArrayList<>();
         if(Objects.nonNull(materialNameSortBy)){
             sortableRequests.add(new SortableRequest("material_name", materialNameSortBy));
@@ -114,5 +114,11 @@ public class MaterialControllerImpl implements MaterialController {
     public ResponseEntity<GeneralResponse<Object>> returnMaterial(String orderId) {
         materialService.returnMaterial(orderId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterialByLabId(String laboratoryId) {
+
+        return responseFactory.response(materialService.getMaterialByLabId(laboratoryId));
     }
 }
