@@ -1,10 +1,10 @@
 package vn.edu.fpt.laboratory.dto.response.laboratory;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
+import vn.edu.fpt.laboratory.dto.common.AuditableResponse;
 
 import java.io.Serializable;
 
@@ -17,11 +17,17 @@ import java.io.Serializable;
  **/
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-@Builder
-public class GetApplicationDetailResponse implements Serializable {
-    private static final long serialVersionUID = -204847778345354223L;
+@Getter
+@Setter
+@ToString
+@SuperBuilder
+@JsonPropertyOrder({"applicationId", "status", "reason", "cvKey"})
+public class GetApplicationDetailResponse extends AuditableResponse {
+
+    private static final long serialVersionUID = 8208749423480067583L;
+    private String applicationId;
     private ApplicationStatusEnum status;
     private String reason;
     private String cvKey;
+    private String comment;
 }

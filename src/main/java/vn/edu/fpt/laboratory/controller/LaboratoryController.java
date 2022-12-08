@@ -7,6 +7,7 @@ import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.laboratory.ReviewApplicationRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
@@ -32,8 +33,8 @@ public interface LaboratoryController {
     @PostMapping("/{lab-id}/project")
     ResponseEntity<GeneralResponse<CreateProjectResponse>> createProject(@PathVariable("lab-id") String labId, @RequestBody _CreateProjectRequest request);
 
-    @PostMapping(value = "/{lab-id}/material", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    ResponseEntity<GeneralResponse<CreateMaterialResponse>> createMaterial(@PathVariable("lab-id") String labId, @ModelAttribute CreateMaterialRequest request);
+    @PostMapping(value = "/{lab-id}/material")
+    ResponseEntity<GeneralResponse<CreateMaterialResponse>> createMaterial(@PathVariable("lab-id") String labId, @RequestBody CreateMaterialRequest request);
 
     @PutMapping("/{lab-id}")
     ResponseEntity<GeneralResponse<Object>> updateLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody UpdateLaboratoryRequest request);
@@ -79,6 +80,9 @@ public interface LaboratoryController {
 
     @PostMapping("/{lab-id}/apply")
     ResponseEntity<GeneralResponse<ApplyLaboratoryResponse>> applyToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody ApplyLaboratoryRequest request);
+
+    @PostMapping("/{lab-id}/{application-id}")
+    ResponseEntity<GeneralResponse<Object>> reviewApplication(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "application-id") String applicationId, @RequestBody ReviewApplicationRequest request);
 
     @GetMapping("/{lab-id}/applications")
     ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(@PathVariable(name = "lab-id") String labId,

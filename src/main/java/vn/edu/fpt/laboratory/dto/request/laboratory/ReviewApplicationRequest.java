@@ -11,17 +11,16 @@ import java.io.Serializable;
  * @author : Hoang Lam
  * @product : Charity Management System
  * @project : Charity System
- * @created : 05/12/2022 - 10:55
+ * @created : 07/12/2022 - 10:42
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
-public class ApplyLaboratoryRequest implements Serializable {
+public class ReviewApplicationRequest implements Serializable {
 
-    private static final long serialVersionUID = -4089524881531825113L;
-    private String accountId;
-    private String reason;
-    private String cvKey;
+    private static final long serialVersionUID = -4292122838816645298L;
+    private String status;
+    private String comment;
 }

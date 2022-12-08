@@ -37,6 +37,8 @@ public class Material extends Auditor {
     private String materialName;
     @Field(name = "description")
     private String description;
+    @Field(name = "note")
+    private String note;
     @Field(name = "status")
     @Builder.Default
     private String status = MaterialStatusEnum.FREE.getStatus();
@@ -44,6 +46,5 @@ public class Material extends Auditor {
     private Integer amount;
     @Field(name = "images")
     @DBRef(lazy = true)
-    @Builder.Default
-    private List<_Image> images = new ArrayList<>();
+    private _Image images;
 }

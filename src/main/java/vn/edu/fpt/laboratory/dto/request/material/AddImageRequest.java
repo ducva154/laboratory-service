@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 
 import java.io.Serializable;
 
@@ -22,5 +22,5 @@ import java.io.Serializable;
 public class AddImageRequest implements Serializable {
 
     private static final long serialVersionUID = 8916980909854995324L;
-    private MultipartFile[] images;
+    private CreateFileRequest[] images;
 }

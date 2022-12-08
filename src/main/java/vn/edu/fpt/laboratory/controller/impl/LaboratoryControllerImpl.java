@@ -9,10 +9,7 @@ import vn.edu.fpt.laboratory.controller.LaboratoryController;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.SortableRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.laboratory.*;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
@@ -143,6 +140,12 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     @Override
     public ResponseEntity<GeneralResponse<ApplyLaboratoryResponse>> applyToLaboratory(String labId, ApplyLaboratoryRequest request) {
         return responseFactory.response(laboratoryService.applyToLaboratory(labId, request));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> reviewApplication(String labId, String applicationId, ReviewApplicationRequest request) {
+        laboratoryService.reviewApplication(labId, applicationId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
