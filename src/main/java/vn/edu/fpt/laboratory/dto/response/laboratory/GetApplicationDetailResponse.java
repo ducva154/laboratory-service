@@ -26,6 +26,7 @@ public class GetApplicationDetailResponse extends AuditableResponse {
 
     private static final long serialVersionUID = 8208749423480067583L;
     private String applicationId;
+    private String accountId;
     private ApplicationStatusEnum status;
     private String reason;
     private String cvKey;

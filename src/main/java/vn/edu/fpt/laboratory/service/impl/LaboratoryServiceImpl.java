@@ -308,11 +308,11 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
 
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        if (memberInfos.stream().noneMatch(v -> v.getMemberId().equals(request.getAccountId()))) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist in laboratory");
+        if (memberInfos.stream().noneMatch(v -> v.getAccountId().equals(request.getAccountId()))) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account ID already exist in lab");
         }
         Application application = Application.builder()
-                .memberId(request.getAccountId())
+                .accountId(request.getAccountId())
                 .reason(request.getReason())
                 .cvKey(request.getCvKey())
                 .build();
@@ -360,6 +360,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         return GetApplicationDetailResponse.builder()
                 .applicationId(application.getApplicationId())
                 .status(application.getStatus())
+                .accountId(application.getAccountId())
                 .cvKey(application.getCvKey())
                 .reason(application.getReason())
                 .comment(application.getComment())
@@ -404,24 +405,22 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             ApplicationStatusEnum statusEnum = ApplicationStatusEnum.valueOf(request.getStatus());
             application.setComment(request.getComment());
             application.setStatus(statusEnum);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Status invalid");
         }
         try {
             applicationRepository.save(application);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw new BusinessException("Can't update application in database");
         }
         Optional<AppConfig> appConfigOptional = appConfigRepository.findByConfigKey("NOTIFY_MEMBER_AFTER_REVIEW_APPLICATION");
-        if(appConfigOptional.isPresent()) {
+        if (appConfigOptional.isPresent()) {
             AppConfig appConfig = appConfigOptional.get();
-            MemberInfo memberInfo = memberInfoRepository.findById(application.getMemberId())
-                    .orElseThrow(() -> new BusinessException("Member info not exist in laboratory"));
-            String email = getEmailOfMemberInfo(memberInfo);
-            if (Objects.nonNull(email)) {
+            UserInfo userInfo = userInfoService.getUserInfo(application.getAccountId());
+            if (Objects.nonNull(userInfo) && Objects.nonNull(userInfo.getEmail())) {
                 SendEmailEvent sendEmailEvent = SendEmailEvent.builder()
                         .templateId(appConfig.getConfigValue())
-                        .sendTo(email)
+                        .sendTo(userInfo.getEmail())
                         .bcc(null)
                         .cc(null)
                         .build();
