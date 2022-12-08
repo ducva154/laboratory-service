@@ -27,8 +27,8 @@ public class Application extends Auditor {
     @Id
     @Field(name = "_id", targetType = FieldType.OBJECT_ID)
     private String applicationId;
-    @Field(name = "member_id")
-    private String memberId;
+    @Field(name = "account_id")
+    private String accountId;
     @Field(name = "reason")
     private String reason;
     @Field(name = "comment")
