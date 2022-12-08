@@ -43,7 +43,7 @@ public interface MaterialController {
             @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", required = false) Integer size,
-            @PathVariable(name = "laboratory-id") String laboratoryId
+            @PathVariable(name = "laboratory-id", required = false) String laboratoryId
     );
 
     @GetMapping("/{material-id}")

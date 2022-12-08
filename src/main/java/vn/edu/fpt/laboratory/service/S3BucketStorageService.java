@@ -1,6 +1,6 @@
 package vn.edu.fpt.laboratory.service;
 
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -14,12 +14,13 @@ import java.io.File;
  **/
 public interface S3BucketStorageService {
 
-    String uploadFile(String path, String fileName, MultipartFile file);
-
+    void uploadFile(CreateFileRequest request, String fileKey);
     void deleteFile(String path);
 
     void downloadFile(String fileKey, HttpServletResponse response);
 
     File downloadFile(String fileKey);
     String sharingUsingPresignedURL(String fileKey);
+
+    String getPublicURL(String fileKey);
 }

@@ -1,12 +1,11 @@
 package vn.edu.fpt.laboratory.dto.response.laboratory;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
+import lombok.*;
+import vn.edu.fpt.laboratory.dto.common.AuditableResponse;
+import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 
-import java.io.Serializable;
+import java.time.LocalDateTime;
+
 
 /**
  * vn.edu.fpt.laboratory.dto.response.laboratory
@@ -17,12 +16,16 @@ import java.io.Serializable;
  **/
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
-public class GetApplicationResponse implements Serializable {
+public class GetApplicationResponse {
+
     private static final long serialVersionUID = 9219729181606732385L;
     private String applicationId;
-    private ApplicationStatusEnum status;
-    private String cvKey;
-    private String reason;
+    private UserInfoResponse createdBy;
+    private LocalDateTime createdDate;
+    private UserInfoResponse lastModifiedBy;
+    private LocalDateTime lastModifiedDate;
 }

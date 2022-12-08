@@ -8,27 +8,21 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
 import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
-import vn.edu.fpt.laboratory.dto.request.laboratory.ApplyLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
+import vn.edu.fpt.laboratory.dto.request.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
-import vn.edu.fpt.laboratory.entity.Application;
-import vn.edu.fpt.laboratory.entity.Laboratory;
-import vn.edu.fpt.laboratory.entity.MemberInfo;
-import vn.edu.fpt.laboratory.entity.Project;
+import vn.edu.fpt.laboratory.entity.*;
 import vn.edu.fpt.laboratory.exception.BusinessException;
-import vn.edu.fpt.laboratory.repository.ApplicationRepository;
-import vn.edu.fpt.laboratory.repository.BaseMongoRepository;
-import vn.edu.fpt.laboratory.repository.LaboratoryRepository;
-import vn.edu.fpt.laboratory.repository.MemberInfoRepository;
+import vn.edu.fpt.laboratory.repository.*;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
 import vn.edu.fpt.laboratory.service.ProjectService;
 import vn.edu.fpt.laboratory.service.UserInfoService;
@@ -57,6 +51,8 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     private final ProjectService projectService;
     private final MongoTemplate mongoTemplate;
     private final ApplicationRepository applicationRepository;
+    private final AppConfigRepository appConfigRepository;
+    private final SendEmailProducer sendEmailProducer;
 
     @Override
     @Transactional(rollbackFor = BusinessException.class)
@@ -329,16 +325,15 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     public ApplyLaboratoryResponse applyToLaboratory(String labId, ApplyLaboratoryRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
-        List<Application> applicationList = laboratory.getApplications();
-        if (Objects.nonNull(request.getAccountId())) {
-            if (applicationList.stream().anyMatch(m -> m.getAccountId().equals(request.getAccountId())) && applicationList.stream().anyMatch(v -> v.getStatus().equals(ApplicationStatusEnum.WAITING_FOR_APPROVE))) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Status is pending");
-            }
+
+        List<MemberInfo> memberInfos = laboratory.getMembers();
+        if (memberInfos.stream().noneMatch(v -> v.getMemberId().equals(request.getAccountId()))) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist in laboratory");
         }
         Application application = Application.builder()
+                .memberId(request.getAccountId())
                 .reason(request.getReason())
                 .cvKey(request.getCvKey())
-                .accountId(request.getAccountId())
                 .build();
         try {
             application = applicationRepository.save(application);
@@ -346,35 +341,127 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         } catch (Exception ex) {
             throw new BusinessException("Can't apply CV in database: " + ex.getMessage());
         }
+        Optional<AppConfig> appConfigOptional = appConfigRepository.findByConfigKey("NOTIFY_MANAGER_TEMPLATE_ID");
+        if (appConfigOptional.isPresent()) {
+            AppConfig appConfig = appConfigOptional.get();
+            List<MemberInfo> managerMemberInfo = laboratory.getMembers().stream()
+                    .filter(v -> LaboratoryRoleEnum.OWNER.getRole().equals(v.getRole()) || LaboratoryRoleEnum.MANAGER.getRole().equals(v.getRole()))
+                    .collect(Collectors.toList());
+            List<String> emails = managerMemberInfo.stream().map(this::getEmailOfMemberInfo).collect(Collectors.toList());
+            List<String> correctEmail = emails.stream().filter(Objects::nonNull).collect(Collectors.toList());
+            for (String email : correctEmail) {
+                SendEmailEvent event = SendEmailEvent.builder()
+                        .templateId(appConfig.getConfigValue())
+                        .sendTo(email)
+                        .cc(null)
+                        .bcc(null)
+                        .build();
+                sendEmailProducer.sendMessage(event);
+            }
+        }
         return ApplyLaboratoryResponse.builder()
                 .applicationId(application.getApplicationId())
                 .build();
+    }
+
+    private String getEmailOfMemberInfo(MemberInfo memberInfo) {
+        UserInfo userInfo = userInfoService.getUserInfo(memberInfo.getAccountId());
+        if (userInfo != null) {
+            return userInfo.getEmail();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public GetApplicationDetailResponse getApplicationByApplicationId(String applicationId) {
         Application application = applicationRepository.findById(applicationId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Application id is not exist"));
         return GetApplicationDetailResponse.builder()
+                .applicationId(application.getApplicationId())
                 .status(application.getStatus())
                 .cvKey(application.getCvKey())
                 .reason(application.getReason())
+                .comment(application.getComment())
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(application.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(application.getCreatedBy()))
+                        .build())
+                .createdDate(application.getCreatedDate())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(application.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(application.getLastModifiedBy()))
+                        .build())
+                .lastModifiedDate(application.getLastModifiedDate())
                 .build();
     }
 
     @Override
     public PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, String status) {
         Laboratory laboratory = laboratoryRepository.findById(labId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab id is not exist"));
-        List<GetApplicationResponse> getApplicationResponses = laboratory.getApplications().stream().map(this::convertApplicationToGetApplicationResponse).collect(Collectors.toList());
+        List<Application> applications;
+        if (Objects.nonNull(status)) {
+            try {
+                ApplicationStatusEnum.valueOf(status);
+            } catch (Exception ex) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Status invalid");
+            }
+            applications = laboratory.getApplications().stream().filter(v -> v.getStatus().getStatusName().equals(status)).collect(Collectors.toList());
+        } else {
+            applications = laboratory.getApplications();
+        }
+        List<GetApplicationResponse> getApplicationResponses = applications.stream().map(this::convertApplicationToGetApplicationResponse).collect(Collectors.toList());
         return new PageableResponse<>(getApplicationResponses);
+    }
 
+    @Override
+    public void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab Id not exist"));
+        Application application = laboratory.getApplications().stream().filter(v -> v.getApplicationId().equals(applicationId)).findFirst().orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Application Id not exist"));
+
+        try {
+            ApplicationStatusEnum statusEnum = ApplicationStatusEnum.valueOf(request.getStatus());
+            application.setComment(request.getComment());
+            application.setStatus(statusEnum);
+        }catch (Exception ex){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Status invalid");
+        }
+        try {
+            applicationRepository.save(application);
+        }catch (Exception ex){
+            throw new BusinessException("Can't update application in database");
+        }
+        Optional<AppConfig> appConfigOptional = appConfigRepository.findByConfigKey("NOTIFY_MEMBER_AFTER_REVIEW_APPLICATION");
+        if(appConfigOptional.isPresent()) {
+            AppConfig appConfig = appConfigOptional.get();
+            MemberInfo memberInfo = memberInfoRepository.findById(application.getMemberId())
+                    .orElseThrow(() -> new BusinessException("Member info not exist in laboratory"));
+            String email = getEmailOfMemberInfo(memberInfo);
+            if (Objects.nonNull(email)) {
+                SendEmailEvent sendEmailEvent = SendEmailEvent.builder()
+                        .templateId(appConfig.getConfigValue())
+                        .sendTo(email)
+                        .bcc(null)
+                        .cc(null)
+                        .build();
+                sendEmailProducer.sendMessage(sendEmailEvent);
+            }
+        }
     }
 
     private GetApplicationResponse convertApplicationToGetApplicationResponse(Application application) {
         return GetApplicationResponse.builder()
                 .applicationId(application.getApplicationId())
-                .status(application.getStatus())
-                .cvKey(application.getCvKey())
-                .reason(application.getReason())
+                .createdBy(UserInfoResponse.builder()
+                        .accountId(application.getCreatedBy())
+                        .userInfo(userInfoService.getUserInfo(application.getCreatedBy()))
+                        .build())
+                .createdDate(application.getCreatedDate())
+                .lastModifiedBy(UserInfoResponse.builder()
+                        .accountId(application.getLastModifiedBy())
+                        .userInfo(userInfoService.getUserInfo(application.getLastModifiedBy()))
+                        .build())
+                .lastModifiedDate(application.getLastModifiedDate())
                 .build();
     }
 }

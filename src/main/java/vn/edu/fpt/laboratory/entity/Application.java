@@ -27,11 +27,13 @@ public class Application extends Auditor {
     @Id
     @Field(name = "_id", targetType = FieldType.OBJECT_ID)
     private String applicationId;
-    @Field("account_id")
-    private String accountId;
-    @Field("reason")
+    @Field(name = "member_id")
+    private String memberId;
+    @Field(name = "reason")
     private String reason;
-    @Field("cv_key")
+    @Field(name = "comment")
+    private String comment;
+    @Field(name = "cvKey")
     private String cvKey;
     @Field(name = "status", targetType = FieldType.STRING)
     private ApplicationStatusEnum status;

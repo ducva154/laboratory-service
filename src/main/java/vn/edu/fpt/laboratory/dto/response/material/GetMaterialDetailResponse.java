@@ -27,8 +27,9 @@ public class GetMaterialDetailResponse extends AuditableResponse implements Seri
     private String materialId;
     private String materialName;
     private String description;
+    private String note;
     private String status;
     private Integer amount;
-    private List<GetImageResponse> images;
+    private GetImageResponse images;
 
 }
