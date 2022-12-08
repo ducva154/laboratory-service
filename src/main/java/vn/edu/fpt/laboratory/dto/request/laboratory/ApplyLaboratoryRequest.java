@@ -22,7 +22,7 @@ public class ApplyLaboratoryRequest implements Serializable {
 
     private static final long serialVersionUID = -4089524881531825113L;
     private String accountId;
-    private String appliactionId;
+    private String applicationId;
     private String reason;
     private String cvKey;
 }

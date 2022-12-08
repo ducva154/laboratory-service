@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import vn.edu.fpt.laboratory.config.kafka.producer.ModifyMembersToWorkspaceProducer;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.dto.event.ModifyMembersToWorkspaceEvent;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.member.UpdateMemberInfoRequest;
@@ -40,6 +42,7 @@ public class MemberServiceImpl implements MemberInfoService {
     private final LaboratoryRepository laboratoryRepository;
     private final UserInfoService userInfoService;
     private final MongoTemplate mongoTemplate;
+    private final ModifyMembersToWorkspaceProducer modifyMembersToWorkspaceProducer;
 
     @Override
     public void addMemberToProject(String projectId, AddMemberToProjectRequest request) {
@@ -55,12 +58,19 @@ public class MemberServiceImpl implements MemberInfoService {
         List<MemberInfo> memberInfos = project.getMembers();
         memberInfos.add(memberInfo);
         project.setMembers(memberInfos);
+
         try {
             projectRepository.save(project);
-            log.info("Add member to proeject success");
+            log.info("Add member to project success");
         } catch (Exception ex) {
             throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can not add member to project in database: " + ex.getMessage());
         }
+
+        modifyMembersToWorkspaceProducer.sendMessage(ModifyMembersToWorkspaceEvent.builder()
+                .workspaceId(projectId)
+                .accountId(memberInfo.getAccountId())
+                .type("ADD")
+                .build());
     }
 
     @Override
@@ -110,53 +120,53 @@ public class MemberServiceImpl implements MemberInfoService {
     @Override
     public void removeMemberFromProject(String projectId, String memberId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
-
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not exist"));
         List<MemberInfo> memberInfos = project.getMembers();
-        Optional<MemberInfo> memberInProject = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
-
-        if (memberInProject.isEmpty()) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromProject");
+        if (memberInfos.stream().noneMatch(m -> m.getMemberId().equals(memberId))) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist in Project");
         }
-
-        if (memberInfos.remove(memberInProject.get())) {
-            project.setMembers(memberInfos);
-            try {
-                projectRepository.save(project);
-                log.info("Remove memnber from project success");
-            } catch (Exception ex) {
-                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove memner");
-            }
-        } else {
-            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from project");
+        memberInfos.removeIf(m -> m.getMemberId().equals(memberId));
+        project.setMembers(memberInfos);
+        try {
+            projectRepository.save(project);
+            log.info("Save project success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save project in database  " + ex.getMessage());
         }
+        MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+                        .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist"));
+        modifyMembersToWorkspaceProducer.sendMessage(ModifyMembersToWorkspaceEvent.builder()
+                .workspaceId(projectId)
+                .accountId(memberInfo.getAccountId())
+                .type("DELETE")
+                .build());
     }
 
     @Override
-    public void removeMemberFromlabotory(String labId, String memberId) {
+    public void removeMemberFromLaboratory(String labId, String memberId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory id not found"));
-
-        List<Project> projectList = laboratory.getProjects();
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not found"));
+        MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist"));
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        Optional<MemberInfo> memberInProject = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
-
-        if (memberInProject.isEmpty()) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromlabotory");
+        if (memberInfos.stream().noneMatch(m -> m.getMemberId().equals(memberId))) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID is not exist in Laboratory");
         }
-
-        if (memberInfos.remove(memberInProject.get())) {
-            laboratory.setProjects(projectList);
-            laboratory.setMembers(memberInfos);
-            try {
-                laboratoryRepository.save(laboratory);
-                log.info("Remove memnber from Laboratory success");
-            } catch (Exception ex) {
-                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update Laboratory in database after remove member");
-            }
-        } else {
-            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from Laboratory");
+        List<Project> projectList = laboratory.getProjects();
+        projectList.stream().map(Project::getProjectId).forEach((projectId) -> this.removeMemberFromProject(projectId, memberId));
+        memberInfos.removeIf(v -> v.getMemberId().equals(memberId));
+        laboratory.setMembers(memberInfos);
+        try {
+            memberInfoRepository.deleteById(memberId);
+            log.info("Delete member success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't delete member in database  " + ex.getMessage());
+        }
+        try {
+            laboratoryRepository.save(laboratory);
+            log.info("Save laboratory success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save laboratory in database  " + ex.getMessage());
         }
     }
-
 }
