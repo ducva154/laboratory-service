@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 
 import java.io.Serializable;
 
@@ -25,5 +25,6 @@ public class CreateMaterialRequest implements Serializable {
     private String materialName;
     private String description;
     private Integer amount;
-    private MultipartFile[] images;
+    private String note;
+    private CreateFileRequest images;
 }

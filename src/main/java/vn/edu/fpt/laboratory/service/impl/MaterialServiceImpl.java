@@ -25,6 +25,7 @@ import vn.edu.fpt.laboratory.repository.*;
 import vn.edu.fpt.laboratory.service.MaterialService;
 import vn.edu.fpt.laboratory.service.S3BucketStorageService;
 import vn.edu.fpt.laboratory.service.UserInfoService;
+import vn.edu.fpt.laboratory.utils.FileUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,31 +62,33 @@ public class MaterialServiceImpl implements MaterialService {
         if (currentMaterial.stream().anyMatch(v -> v.getMaterialName().equals(request.getMaterialName()))) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material name already exist");
         }
+        _Image image = null;
+        CreateFileRequest createFileRequest = request.getImages();
+        if(Objects.nonNull(createFileRequest)) {
+            String fileKey = UUID.randomUUID().toString();
+            s3BucketStorageService.uploadFile(createFileRequest, fileKey);
 
-        List<_Image> images = new ArrayList<>();
-        if (request.getImages() != null) {
-            for (MultipartFile file :
-                    request.getImages()) {
-                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
-                String path = String.format("%s/%s", laboratory.getLaboratoryName(), fileName);
-                String url = s3BucketStorageService.uploadFile(path, fileName, file);
-                images.add(_Image.builder()
-                        .imageName(fileName)
-                        .fullPath(path)
-                        .url(url)
-                        .build());
-            }
-        }
-
-        if (!images.isEmpty()) {
-            images = imageRepository.saveAll(images);
+                image = _Image.builder()
+                    .imageName(createFileRequest.getName())
+                    .size(FileUtils.getFileSize(createFileRequest.getSize()))
+                    .type(createFileRequest.getName().split("\\.")[1])
+                    .mimeType(createFileRequest.getMimeType())
+                    .length(createFileRequest.getSize())
+                    .fileKey(fileKey)
+                    .build();
+                try {
+                    image = imageRepository.save(image);
+                }catch (Exception ex){
+                    throw new BusinessException("Can't save image to database: "+ ex.getMessage());
+                }
         }
 
         Material material = Material.builder()
                 .materialName(request.getMaterialName())
                 .description(request.getDescription())
                 .amount(request.getAmount())
-                .images(images)
+                .note(request.getNote())
+                .images(image)
                 .build();
 
         try {
@@ -227,14 +230,15 @@ public class MaterialServiceImpl implements MaterialService {
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
 
-        List<_Image> images = material.getImages();
+        _Image image =  material.getImages();
 
         return GetMaterialDetailResponse.builder()
                 .materialId(material.getMaterialId())
                 .materialName(material.getMaterialName())
                 .description(material.getDescription())
                 .status(material.getStatus())
-                .images(images.stream().map(this::convertImageToGetImageResponse).collect(Collectors.toList()))
+                .images(convertImageToGetImageResponse(image))
+                .note(material.getNote())
                 .amount(material.getAmount())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(material.getCreatedBy())
@@ -253,7 +257,7 @@ public class MaterialServiceImpl implements MaterialService {
         return GetImageResponse.builder()
                 .imageId(image.getImageId())
                 .imageName(image.getImageName())
-                .url(image.getUrl())
+                .url(s3BucketStorageService.getPublicURL(image.getFileKey()))
                 .build();
     }
 
@@ -345,67 +349,68 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public void removeImage(String materialId, String imageId) {
-        Material material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+//        Material material = materialRepository.findById(materialId)
+//                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+//
+//        if (material.getStatus().equals(MaterialStatusEnum.FREE.getStatus())) {
+//            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
+//        }
+//        _Image images = material.getImages();
+//        if(images.getImageId().equals(imageId)){
+//                throw new BusinessException("Can't get image exists");
+//        }
+//        material.setImages(images);
+//        try {
+//            materialRepository.save(material);
+//        } catch (Exception ex) {
+//            throw new BusinessException("Can't addImage material to database: " + ex.getMessage());
+//        }
+//
+//        imageRepository.delete(image);
+//        s3BucketStorageService.deleteFile(image.getFullPath());
 
-        if (material.getStatus().equals(MaterialStatusEnum.FREE.getStatus())) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
-        }
-        List<_Image> images = material.getImages();
-        _Image image = images.stream().filter(v -> v.getImageId().equals(imageId)).findAny()
-                .orElseThrow(() -> new BusinessException("Can't get image exists"));
-        images.remove(image);
-        material.setImages(images);
-        try {
-            materialRepository.save(material);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't addImage material to database: " + ex.getMessage());
-        }
-
-        imageRepository.delete(image);
-        s3BucketStorageService.deleteFile(image.getFullPath());
     }
 
     public void addImage(String materialId, AddImageRequest request) {
-        Material material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
-        Query query = new Query();
-        query.addCriteria(Criteria.where("materials.$id").is(new ObjectId(materialId)));
-        Laboratory laboratories;
-        try {
-            laboratories = mongoTemplate.findOne(query, Laboratory.class);
-            log.info("get laboratories: {}", laboratories);
-        }catch (Exception ex){
-            throw new BusinessException("Can't get laboratories");
-        }
-        if(laboratories == null){
-            throw new BusinessException("laboratories is null can't get Image");
-        }
-        List<_Image> images = new ArrayList<>();
-        if (request.getImages() != null) {
-            for (MultipartFile file :
-                    request.getImages()) {
-                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
-                String path = String.format("%s/%s", laboratories.getLaboratoryName(), fileName);
-                String url = s3BucketStorageService.uploadFile(path, fileName, file);
-                images.add(_Image.builder()
-                        .imageName(fileName)
-                        .fullPath(path)
-                        .url(url)
-                        .build());
-            }
-        }
-        if (!images.isEmpty()) {
-            images = imageRepository.saveAll(images);
-        }
-        List<_Image> currentImage = material.getImages();
-        currentImage.addAll(images);
-        material.setImages(currentImage);
-        try {
-            materialRepository.save(material);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
-        }
+//        Material material = materialRepository.findById(materialId)
+//                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+//        Query query = new Query();
+//        query.addCriteria(Criteria.where("materials.$id").is(new ObjectId(materialId)));
+//        Laboratory laboratories;
+//        try {
+//            laboratories = mongoTemplate.findOne(query, Laboratory.class);
+//            log.info("get laboratories: {}", laboratories);
+//        }catch (Exception ex){
+//            throw new BusinessException("Can't get laboratories");
+//        }
+//        if(laboratories == null){
+//            throw new BusinessException("laboratories is null can't get Image");
+//        }
+//        List<_Image> images = new ArrayList<>();
+//        if (request.getImages() != null) {
+//            for (CreateFileRequest file :
+//                    request.getImages()) {
+//                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
+//                String path = String.format("%s/%s", laboratories.getLaboratoryName(), fileName);
+//                String url = s3BucketStorageService.uploadFile(path, fileName, file);
+//                images.add(_Image.builder()
+//                        .imageName(fileName)
+//                        .fullPath(path)
+//                        .url(url)
+//                        .build());
+//            }
+//        }
+//        if (!images.isEmpty()) {
+//            images = imageRepository.saveAll(images);
+//        }
+//        List<_Image> currentImage = material.getImages();
+//        currentImage.addAll(images);
+//        material.setImages(currentImage);
+//        try {
+//            materialRepository.save(material);
+//        } catch (Exception ex) {
+//            throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
+//        }
     }
 
     @Override

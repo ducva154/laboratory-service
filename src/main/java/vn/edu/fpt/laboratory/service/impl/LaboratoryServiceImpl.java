@@ -1,9 +1,7 @@
 package vn.edu.fpt.laboratory.service.impl;
 
-import com.amazonaws.services.fms.model.App;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.network.Send;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -310,11 +308,11 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
 
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        if (memberInfos.stream().noneMatch(v -> v.getMemberId().equals(request.getMemberId()))) {
+        if (memberInfos.stream().noneMatch(v -> v.getMemberId().equals(request.getAccountId()))) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist in laboratory");
         }
         Application application = Application.builder()
-                .memberId(request.getMemberId())
+                .memberId(request.getAccountId())
                 .reason(request.getReason())
                 .cvKey(request.getCvKey())
                 .build();
