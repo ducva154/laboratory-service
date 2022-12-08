@@ -1,6 +1,5 @@
 package vn.edu.fpt.laboratory.controller.impl;
 
-import com.amazonaws.services.managedblockchain.model.UpdateMemberRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +11,7 @@ import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.member.UpdateMemberInfoRequest;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
-import vn.edu.fpt.laboratory.service.LaboratoryService;
 import vn.edu.fpt.laboratory.service.MemberInfoService;
-import vn.edu.fpt.laboratory.service.ProjectService;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,7 +53,7 @@ public class MemberControllerImpl implements MemberController {
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> removeMemberFromlabotory(String labId, String memberId) {
-        memberInfoService.removeMemberFromlabotory(labId, memberId);
+        memberInfoService.removeMemberFromLaboratory(labId, memberId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
