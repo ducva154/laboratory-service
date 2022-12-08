@@ -316,11 +316,20 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .reason(request.getReason())
                 .cvKey(request.getCvKey())
                 .build();
+        List<Application> applications = laboratory.getApplications();
         try {
             application = applicationRepository.save(application);
             log.info("Apply CV to Lab success");
         } catch (Exception ex) {
             throw new BusinessException("Can't apply CV in database: " + ex.getMessage());
+        }
+        applications.add(application);
+        laboratory.setApplications(applications);
+        try {
+            laboratoryRepository.save(laboratory);
+            log.info("Add application to laboratory success");
+        } catch (Exception ex) {
+            throw new BusinessException("Can't add application to laboratory in database: " + ex.getMessage());
         }
         Optional<AppConfig> appConfigOptional = appConfigRepository.findByConfigKey("NOTIFY_MANAGER_TEMPLATE_ID");
         if (appConfigOptional.isPresent()) {
