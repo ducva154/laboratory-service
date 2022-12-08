@@ -18,10 +18,10 @@ import vn.edu.fpt.laboratory.dto.request.member.UpdateMemberInfoRequest;
 @RequestMapping("${app.application-context}/public/api/v1/members")
 public interface MemberController {
 
-    @PostMapping("/{project-id}/member")
+    @PostMapping("/{project-id}/member-to-project")
     ResponseEntity<GeneralResponse<Object>> addMemberToProject(@PathVariable(name = "project-id") String projectId, @RequestBody AddMemberToProjectRequest request);
 
-    @PostMapping("/{lab-id}/member")
+    @PostMapping("/{lab-id}/member-to-lab")
     ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody AddMemberToLaboratoryRequest request);
 
     @PutMapping("/{member-id}")

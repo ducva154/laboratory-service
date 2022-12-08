@@ -115,7 +115,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         if (Objects.nonNull(request.getMajor())) {
             laboratory.setDescription(request.getMajor());
         }
-        if(Objects.nonNull(request.getOwnerBy()) && ObjectId.isValid(request.getOwnerBy())){
+        if (Objects.nonNull(request.getOwnerBy()) && ObjectId.isValid(request.getOwnerBy())) {
             log.info("Update Laboratory name: {}", request.getLaboratoryName());
             MemberInfo memberInfo = laboratory.getMembers().stream().filter((v) -> v.getMemberId().equals(request.getOwnerBy())).findAny().orElseThrow();
             laboratory.setOwnerBy(memberInfo);
@@ -191,7 +191,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab ID not exist"));
         List<MemberInfo> memberInfos = laboratory.getMembers();
         List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberResponse).collect(Collectors.toList());
-        return new PageableResponse<>( getMemberResponses);
+        return new PageableResponse<>(getMemberResponses);
     }
 
     @Override
@@ -235,13 +235,24 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     @Override
     public GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request) {
         request.setIsContain(true);
-        PageableResponse<GetLaboratoryResponse> joinedLaboratories = getLaboratoryInDatabase(request);
 
+        PageableResponse<GetLaboratoryResponse> joinedLaboratories;
+        try {
+            joinedLaboratories = getLaboratoryInDatabase(request);
+        }catch (Exception ex){
+            log.error(ex.getMessage());
+            throw new BusinessException("INDSF");
+        }
         request.setIsContain(false);
         request.setSize(request.getSuggestionSize());
         request.setPage(request.getSuggestionPage());
 
-        PageableResponse<GetLaboratoryResponse> suggestionLaboratories = getLaboratoryInDatabase(request);
+        PageableResponse<GetLaboratoryResponse> suggestionLaboratories ;
+        try {
+            suggestionLaboratories = getLaboratoryInDatabase(request);
+        }catch (Exception ex){
+            throw new BusinessException("SDF");
+        }
 
         return GetLaboratoryContainerResponse.builder()
                 .joinedLaboratories(joinedLaboratories)
@@ -249,7 +260,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .build();
     }
 
-    private PageableResponse<GetLaboratoryResponse> getLaboratoryInDatabase(GetLaboratoryRequest request){
+    private PageableResponse<GetLaboratoryResponse> getLaboratoryInDatabase(GetLaboratoryRequest request) {
         Query query = new Query();
 
         if (Objects.nonNull(request.getLaboratoryId())) {
@@ -272,9 +283,9 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             }
             List<MemberInfo> memberInfos = memberInfoRepository.findAllByAccountId(request.getAccountId());
             List<ObjectId> memberId = memberInfos.stream().map(MemberInfo::getMemberId).map(ObjectId::new).collect(Collectors.toList());
-            if(request.getIsContain()){
+            if (request.getIsContain()) {
                 query.addCriteria(Criteria.where("members.$id").in(memberId));
-            }else{
+            } else {
                 query.addCriteria(Criteria.where("members.$id").nin(memberId));
             }
         }
@@ -292,20 +303,26 @@ public class LaboratoryServiceImpl implements LaboratoryService {
 
     private GetLaboratoryResponse convertLaboratoryToGetLaboratoryResponse(Laboratory laboratory) {
         MemberInfo ownerBy = laboratory.getOwnerBy();
-        return GetLaboratoryResponse.builder()
-                .laboratoryId(laboratory.getLaboratoryId())
-                .laboratoryName(laboratory.getLaboratoryName())
-                .description(laboratory.getDescription())
-                .major(laboratory.getMajor())
-                .projects(laboratory.getProjects().size())
-                .members(laboratory.getMembers().size())
-                .ownerBy(MemberInfoResponse.builder()
-                        .memberId(ownerBy.getMemberId())
-                        .accountId(ownerBy.getAccountId())
-                        .role(ownerBy.getRole())
-                        .userInfo(userInfoService.getUserInfo(ownerBy.getAccountId()))
-                        .build())
-                .build();
+        try {
+            return GetLaboratoryResponse.builder()
+                    .laboratoryId(laboratory.getLaboratoryId())
+                    .laboratoryName(laboratory.getLaboratoryName())
+                    .description(laboratory.getDescription())
+                    .major(laboratory.getMajor())
+                    .projects(laboratory.getProjects().size())
+                    .members(laboratory.getMembers().size())
+                    .ownerBy(MemberInfoResponse.builder()
+                            .memberId(ownerBy.getMemberId())
+                            .accountId(ownerBy.getAccountId())
+                            .role(ownerBy.getRole())
+                            .userInfo(userInfoService.getUserInfo(ownerBy.getAccountId()))
+                            .build())
+                    .build();
+        } catch (Exception ex) {
+            log.error("ERROR: " + ex.getMessage());
+            return null;
+        }
+
     }
 
     @Override
@@ -336,7 +353,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
 
     @Override
     public GetApplicationDetailResponse getApplicationByApplicationId(String applicationId) {
-        Application application = applicationRepository.findById(applicationId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST,"Application id is not exist"));
+        Application application = applicationRepository.findById(applicationId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Application id is not exist"));
         return GetApplicationDetailResponse.builder()
                 .status(application.getStatus())
                 .cvKey(application.getCvKey())

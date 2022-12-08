@@ -24,7 +24,7 @@ import vn.edu.fpt.laboratory.entity.common.Auditor;
 @SuperBuilder
 public class MemberInfo extends Auditor {
 
-    private static final long serialVersionUID = -3617402162338405961L;
+    private static final long serialVersionUID = -3617402162338443961L;
     @Id
     @Field(name = "_id", targetType = FieldType.OBJECT_ID)
     private String memberId;
