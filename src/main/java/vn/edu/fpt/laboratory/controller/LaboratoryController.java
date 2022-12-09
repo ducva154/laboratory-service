@@ -90,4 +90,5 @@ public interface LaboratoryController {
 
     @GetMapping("/applications/{application-id}")
     ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
+
 }

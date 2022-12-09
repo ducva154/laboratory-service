@@ -3,6 +3,7 @@ package vn.edu.fpt.laboratory.dto.request.member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -14,6 +15,7 @@ import java.io.Serializable;
  * @contact : 0339850697- congdung2510@gmail.com
  **/
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
 public class UpdateMemberInfoRequest implements Serializable {

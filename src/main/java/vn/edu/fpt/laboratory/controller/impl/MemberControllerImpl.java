@@ -45,17 +45,5 @@ public class MemberControllerImpl implements MemberController {
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> removeMemberFromProject(String projectId, String memberId) {
-        memberInfoService.removeMemberFromProject(projectId, memberId);
-        return responseFactory.response(ResponseStatusEnum.SUCCESS);
-    }
-
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> removeMemberFromlabotory(String labId, String memberId) {
-        memberInfoService.removeMemberFromLaboratory(labId, memberId);
-        return responseFactory.response(ResponseStatusEnum.SUCCESS);
-    }
-
 
 }

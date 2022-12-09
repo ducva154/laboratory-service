@@ -1,6 +1,5 @@
 package vn.edu.fpt.laboratory.controller;
 
-import com.amazonaws.services.managedblockchain.model.UpdateMemberRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
@@ -27,16 +26,5 @@ public interface MemberController {
     @PutMapping("/{member-id}")
     ResponseEntity<GeneralResponse<Object>> updateMember(@PathVariable(name = "member-id") String memberId, @RequestBody UpdateMemberInfoRequest request);
 
-    @DeleteMapping("/{project-id}/{member-id}/remove-member-from-project")
-    ResponseEntity<GeneralResponse<Object>> removeMemberFromProject(
-            @PathVariable("project-id") String projectId,
-            @PathVariable("member-id") String memberId
-    );
-
-    @DeleteMapping("/{lab-id}/{member-id}/remove-member-from-lab")
-    ResponseEntity<GeneralResponse<Object>> removeMemberFromlabotory(
-            @PathVariable("lab-id") String labId,
-            @PathVariable("member-id") String memberId
-    );
 
 }
