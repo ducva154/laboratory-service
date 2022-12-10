@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import vn.edu.fpt.laboratory.dto.event.CreateWorkspaceEvent;
+import vn.edu.fpt.laboratory.dto.event.GenerateProjectAppEvent;
 import vn.edu.fpt.laboratory.exception.BusinessException;
 
 import java.util.UUID;
@@ -18,20 +18,20 @@ import java.util.UUID;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @Service
-public class CreateWorkspaceProducer extends Producer{
+public class GenerateProjectAppProducer extends Producer{
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public CreateWorkspaceProducer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
+    public GenerateProjectAppProducer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
         super(kafkaTemplate);
         this.objectMapper = objectMapper;
     }
 
-    public void sendMessage(CreateWorkspaceEvent event){
+    public void sendMessage(GenerateProjectAppEvent event){
         try {
             String value = objectMapper.writeValueAsString(event);
-            super.sendMessage("flab.workspace.create-workspace", UUID.randomUUID().toString(), value);
+            super.sendMessage("flab.project.generate-app", UUID.randomUUID().toString(), value);
         } catch (JsonProcessingException e) {
             throw new BusinessException("Can't convert Create workspace event to String: "+ e.getMessage());
         }
