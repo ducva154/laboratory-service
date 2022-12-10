@@ -196,8 +196,15 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Role id not found"));
 
         List<Project> projects = laboratory.getProjects();
-        projects.stream().map(Project::getProjectId).forEach((projectId) -> projectService.removeMemberFromProject(projectId, memberId));
-
+//        projects.stream().map(Project::getProjectId).forEach((projectId) -> projectService.removeMemberFromProject(projectId, memberId));
+        for (Project p : projects ) {
+            List<MemberInfo> memberInfos = p.getMembers();
+            for (MemberInfo m : memberInfos ) {
+                if (m.getMemberId().equals(memberId)) {
+                    projectService.removeMemberFromProject(p.getProjectId(), memberId);
+                }
+            }
+        }
         List<MemberInfo> memberInfos = laboratory.getMembers();
         Optional<MemberInfo> memberInLabo = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
 
