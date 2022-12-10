@@ -310,7 +310,7 @@ public class ProjectServiceImpl implements ProjectService {
             project.setMembers(memberInfos);
             try {
                 projectRepository.save(project);
-                log.info("Remove memnber from Project success");
+                log.info("Remove member from Project success");
             } catch (Exception ex) {
                 throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove Project");
             }
