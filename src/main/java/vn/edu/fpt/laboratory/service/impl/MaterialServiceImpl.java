@@ -139,6 +139,20 @@ public class MaterialServiceImpl implements MaterialService {
         if (Objects.nonNull(request.getAmount()) && request.getAmount() > 0) {
             material.setAmount(request.getAmount());
         }
+        if (Objects.nonNull(request.getImage())) {
+            String fileKey = UUID.randomUUID().toString();
+            s3BucketStorageService.uploadFile(request.getImage(), fileKey);
+            String[] splits = request.getImage().getName().split("\\.");
+            String type = splits[splits.length-1];
+            material.setImages(_Image.builder()
+                            .imageName(request.getImage().getName())
+                            .fileKey(fileKey)
+                            .size(FileUtils.getFileSize(request.getImage().getSize()))
+                            .type(type)
+                            .length(request.getImage().getSize())
+                            .mimeType(request.getImage().getMimeType())
+                    .build());
+        }
 
         try {
             materialRepository.save(material);
