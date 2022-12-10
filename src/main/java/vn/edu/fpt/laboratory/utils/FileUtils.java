@@ -10,19 +10,18 @@ package vn.edu.fpt.laboratory.utils;
 public class FileUtils {
 
     public static String getFileSize(Long length){
-        double sizeInBytes =(double) length/1024;
-        if(sizeInBytes < 1024){
-            return String.format("%.2f %s", sizeInBytes, "Byte");
+        if (length < 1024) {
+            return String.format("%d %s", length, "Byte");
         }
-        double sizeInKb =sizeInBytes/1024;
+        double sizeInKb =(double) length/1024;
         if(sizeInKb < 1024){
             return String.format("%.2f %s", sizeInKb, "KB");
         }
-        double sizeInMb = sizeInKb / 1024;
+        double sizeInMb =sizeInKb/1024;
         if(sizeInMb < 1024){
             return String.format("%.2f %s", sizeInMb, "MB");
         }
         double sizeInGb = sizeInMb / 1024;
-        return String.format("%.2f %s", sizeInGb, "GB");
+            return String.format("%.2f %s", sizeInGb, "GB");
     }
 }

@@ -27,4 +27,5 @@ public class GetMaterialResponse extends AuditableResponse implements Serializab
     private String description;
     private Integer amount;
     private String status;
+    private String image;
 }

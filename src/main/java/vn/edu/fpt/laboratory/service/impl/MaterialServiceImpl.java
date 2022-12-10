@@ -144,14 +144,23 @@ public class MaterialServiceImpl implements MaterialService {
             s3BucketStorageService.uploadFile(request.getImage(), fileKey);
             String[] splits = request.getImage().getName().split("\\.");
             String type = splits[splits.length-1];
-            material.setImages(_Image.builder()
-                            .imageName(request.getImage().getName())
-                            .fileKey(fileKey)
-                            .size(FileUtils.getFileSize(request.getImage().getSize()))
-                            .type(type)
-                            .length(request.getImage().getSize())
-                            .mimeType(request.getImage().getMimeType())
-                    .build());
+            _Image image = _Image.builder()
+                    .imageName(request.getImage().getName())
+                    .fileKey(fileKey)
+                    .size(FileUtils.getFileSize(request.getImage().getSize()))
+                    .type(type)
+                    .length(request.getImage().getSize())
+                    .mimeType(request.getImage().getMimeType())
+                    .build();
+            try {
+                image = imageRepository.save(image);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save image to database: " + ex.getMessage());
+            }
+            material.setImages(image);
+        }
+        if (Objects.nonNull(request.getNote())){
+            material.setNote(request.getNote());
         }
 
         try {
@@ -226,6 +235,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .description(material.getDescription())
                 .status(material.getStatus())
                 .amount(material.getAmount())
+                .image(s3BucketStorageService.getPublicURL(material.getImages().getFileKey()))
                 .createdBy(UserInfoResponse.builder()
                         .accountId(material.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(material.getCreatedBy()))

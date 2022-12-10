@@ -25,4 +25,5 @@ public class UpdateMaterialRequest implements Serializable {
     private String status;
     private Integer amount;
     private CreateFileRequest image;
+    private String note;
 }
