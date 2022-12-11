@@ -348,6 +348,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .accountId(request.getAccountId())
                 .reason(request.getReason())
                 .cvKey(request.getCvKey())
+                .status(ApplicationStatusEnum.WAITING_FOR_APPROVE)
                 .build();
         List<Application> applications = laboratory.getApplications();
         try {
