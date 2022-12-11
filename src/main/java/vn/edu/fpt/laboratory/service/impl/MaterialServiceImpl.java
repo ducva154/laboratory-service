@@ -300,11 +300,13 @@ public class MaterialServiceImpl implements MaterialService {
                 if (b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderFrom()) ||
                         b.getFromDate().isBefore(request.getOrderTo()) && b.getToDate().isAfter(request.getOrderTo()) ||
                         b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderTo()) ||
-                        b.getFromDate().isAfter(request.getOrderFrom()) && b.getToDate().isBefore(request.getOrderTo())) {
+                        b.getFromDate().isAfter(request.getOrderFrom()) && b.getToDate().isBefore(request.getOrderTo()) ||
+                        b.getFromDate().isEqual(request.getOrderFrom()) && b.getToDate().isEqual(request.getOrderTo())) {
                     throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material is in used in order time");
                 }
             }
         }
+
         OrderHistory orderHistory = OrderHistory.builder()
                 .reason(request.getReason())
                 .materialId(materialId)
@@ -433,9 +435,18 @@ public class MaterialServiceImpl implements MaterialService {
     public void responseOrder(String orderId, ResponseOrderRequest request) {
         OrderHistory orderHistory = orderHistoryRepository.findById(orderId)
                 .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order ID not exist"));
+        Material material = materialRepository.findById(orderHistory.getMaterialId())
+                .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
         if (Objects.nonNull(request.getStatus())) {
             if (request.getStatus().equals(OrderStatusEnum.APPROVED.getStatus())) {
                 orderHistory.setStatus(OrderStatusEnum.APPROVED.getStatus());
+                BorrowTime borrowTime = BorrowTime.builder()
+                        .fromDate(orderHistory.getOrderFrom())
+                        .toDate(orderHistory.getOrderTo())
+                        .build();
+                List<BorrowTime> borrowTimeList = material.getBorrowTime();
+                borrowTimeList.add(borrowTime);
+                material.setBorrowTime(borrowTimeList);
             } else {
                 orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());
             }
@@ -444,6 +455,11 @@ public class MaterialServiceImpl implements MaterialService {
             orderHistoryRepository.save(orderHistory);
         } catch (Exception ex) {
             throw new BusinessException("Can't save order history to database: " + ex.getMessage());
+        }
+        try {
+            materialRepository.save(material);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save material to database: " + ex.getMessage());
         }
     }
 
