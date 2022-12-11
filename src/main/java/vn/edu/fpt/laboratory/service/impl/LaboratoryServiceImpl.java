@@ -215,13 +215,20 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             laboratory.setMembers(memberInfos);
             try {
                 laboratoryRepository.save(laboratory);
-                log.info("Remove permission from role success");
+                log.info("Remove member from lab success");
             } catch (Exception ex) {
-                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update labo in database after remove member");
+                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update lab in database after remove member");
             }
         } else {
-            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from labo");
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from lab");
         }
+        try {
+            memberInfoRepository.deleteById(memberId);
+            log.info("Remove member in database success");
+        } catch (Exception ex) {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member in database");
+        }
+
     }
 
     private GetMemberResponse convertMemberToGetMemberResponse(MemberInfo memberInfo) {
@@ -461,6 +468,23 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                         .build();
                 sendEmailProducer.sendMessage(sendEmailEvent);
             }
+        }
+        MemberInfo memberInfo = MemberInfo.builder()
+                .accountId(application.getAccountId())
+                .role(LaboratoryRoleEnum.MEMBER.getRole())
+                .build();
+        try {
+            memberInfo = memberInfoRepository.save(memberInfo);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create member info in database");
+        }
+        List<MemberInfo> memberInfos = laboratory.getMembers();
+        memberInfos.add(memberInfo);
+        laboratory.setMembers(memberInfos);
+        try {
+            laboratoryRepository.save(laboratory);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save laboratory after add member in database");
         }
     }
 
