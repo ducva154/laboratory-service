@@ -295,17 +295,19 @@ public class MaterialServiceImpl implements MaterialService {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
         }
         List<BorrowTime> borrowTimeList = material.getBorrowTime();
-        for (BorrowTime borrowTime : borrowTimeList) {
-            if (borrowTime.getFromDate().isBefore(request.getOrderFrom()) && borrowTime.getToDate().isAfter(request.getOrderFrom()) ||
-                    borrowTime.getFromDate().isBefore(request.getOrderTo()) && borrowTime.getToDate().isAfter(request.getOrderTo()) ||
-                    borrowTime.getFromDate().isBefore(request.getOrderFrom()) && borrowTime.getToDate().isAfter(request.getOrderTo()) ||
-                    borrowTime.getFromDate().isAfter(request.getOrderFrom()) && borrowTime.getToDate().isBefore(request.getOrderTo())) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material is in used in order time");
+        if (!borrowTimeList.isEmpty()) {
+            for (BorrowTime b : borrowTimeList) {
+                if (b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderFrom()) ||
+                        b.getFromDate().isBefore(request.getOrderTo()) && b.getToDate().isAfter(request.getOrderTo()) ||
+                        b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderTo()) ||
+                        b.getFromDate().isAfter(request.getOrderFrom()) && b.getToDate().isBefore(request.getOrderTo())) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material is in used in order time");
+                }
             }
         }
         OrderHistory orderHistory = OrderHistory.builder()
                 .reason(request.getReason())
-                .materialId(request.getMaterialId())
+                .materialId(materialId)
                 .amount(request.getAmount())
                 .orderFrom(request.getOrderFrom())
                 .orderTo(request.getOrderTo())
@@ -432,7 +434,7 @@ public class MaterialServiceImpl implements MaterialService {
         OrderHistory orderHistory = orderHistoryRepository.findById(orderId)
                 .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order ID not exist"));
         if (Objects.nonNull(request.getStatus())) {
-            if (request.getStatus().equals(OrderStatusEnum.APPROVED)) {
+            if (request.getStatus().equals(OrderStatusEnum.APPROVED.getStatus())) {
                 orderHistory.setStatus(OrderStatusEnum.APPROVED.getStatus());
             } else {
                 orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());

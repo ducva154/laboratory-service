@@ -48,5 +48,6 @@ public class Material extends Auditor {
     @DBRef(lazy = true)
     private _Image images;
     @Field(name = "borrow_time")
-    private List<BorrowTime> borrowTime;
+    @Builder.Default
+    private List<BorrowTime> borrowTime = new ArrayList<>();
 }

@@ -29,7 +29,7 @@ public interface MaterialService {
 
     PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, String status);
 
-    PageableResponse<GetOrderedMaterialResponse> getOrderedMaterialInLabByAccountId(String laboratoryId, String memberId);
+    PageableResponse<GetOrderedMaterialResponse> getOrderedMaterialInLabByAccountId(String laboratoryId, String accountId);
 
     void responseOrder(String orderId, ResponseOrderRequest request);
 

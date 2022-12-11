@@ -117,8 +117,8 @@ public class MaterialControllerImpl implements MaterialController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(String laboratoryId, String memberId) {
-        return responseFactory.response(materialService.getOrderedMaterialInLabByAccountId(laboratoryId, memberId));
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(String laboratoryId, String accountId) {
+        return responseFactory.response(materialService.getOrderedMaterialInLabByAccountId(laboratoryId, accountId));
     }
 
     @Override
