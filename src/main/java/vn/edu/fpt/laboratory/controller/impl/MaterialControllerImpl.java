@@ -1,7 +1,5 @@
 package vn.edu.fpt.laboratory.controller.impl;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +10,7 @@ import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.SortableRequest;
 import vn.edu.fpt.laboratory.dto.request.material.*;
-import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.material.*;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.MaterialService;
 
@@ -102,7 +97,7 @@ public class MaterialControllerImpl implements MaterialController {
 
     @Override
     public ResponseEntity<GeneralResponse<GetMaterialDetailResponse>> getMaterialId(String materialId) {
-        return responseFactory.response(materialService.getMaterialId(materialId));
+        return responseFactory.response(materialService.getMaterialById(materialId));
     }
 
     @Override
@@ -117,8 +112,23 @@ public class MaterialControllerImpl implements MaterialController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterialByLabId(String laboratoryId) {
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(String laboratoryId, String status) {
+        return responseFactory.response(materialService.getOrderByLabId(laboratoryId, status));
+    }
 
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(String laboratoryId, String memberId) {
+        return responseFactory.response(materialService.getOrderedMaterialInLabByAccountId(laboratoryId, memberId));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> responseOrder(String orderId, ResponseOrderRequest request) {
+        materialService.responseOrder(orderId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterialByLabId(String laboratoryId) {
         return responseFactory.response(materialService.getMaterialByLabId(laboratoryId));
     }
 }

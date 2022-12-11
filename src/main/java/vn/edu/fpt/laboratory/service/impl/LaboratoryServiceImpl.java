@@ -348,6 +348,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .accountId(request.getAccountId())
                 .reason(request.getReason())
                 .cvKey(request.getCvKey())
+                .status(ApplicationStatusEnum.WAITING_FOR_APPROVE)
                 .build();
         List<Application> applications = laboratory.getApplications();
         try {
@@ -491,6 +492,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     private GetApplicationResponse convertApplicationToGetApplicationResponse(Application application) {
         return GetApplicationResponse.builder()
                 .applicationId(application.getApplicationId())
+                .status(application.getStatus().getStatusName())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(application.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(application.getCreatedBy()))

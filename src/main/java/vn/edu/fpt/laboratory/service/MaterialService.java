@@ -2,10 +2,7 @@ package vn.edu.fpt.laboratory.service;
 
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.material.*;
-import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.material.*;
 
 /**
  * @author : Hoang Lam
@@ -24,11 +21,17 @@ public interface MaterialService {
 
     PageableResponse<GetMaterialResponse> getMaterial(GetMaterialRequest request);
 
-    GetMaterialDetailResponse getMaterialId(String materialId);
+    GetMaterialDetailResponse getMaterialById(String materialId);
 
     OrderMaterialResponse orderMaterial(String laboratoryId, String materialId, OrderMaterialRequest request);
 
     void returnMaterial(String orderId);
+
+    PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, String status);
+
+    PageableResponse<GetOrderedMaterialResponse> getOrderedMaterialInLabByAccountId(String laboratoryId, String memberId);
+
+    void responseOrder(String orderId, ResponseOrderRequest request);
 
     void removeImage(String materialId, String imageId);
 

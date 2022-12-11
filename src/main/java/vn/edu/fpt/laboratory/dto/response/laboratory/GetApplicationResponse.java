@@ -24,6 +24,7 @@ public class GetApplicationResponse {
 
     private static final long serialVersionUID = 9219729181606732385L;
     private String applicationId;
+    private String status;
     private UserInfoResponse createdBy;
     private LocalDateTime createdDate;
     private UserInfoResponse lastModifiedBy;

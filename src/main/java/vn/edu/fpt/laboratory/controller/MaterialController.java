@@ -5,9 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.material.*;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.material.*;
 
 /**
  * @author : Hoang Lam
@@ -56,6 +54,15 @@ public interface MaterialController {
 
     @PostMapping("/orders/{order-id}")
     ResponseEntity<GeneralResponse<Object>> returnMaterial(@PathVariable(name = "order-id") String orderId);
+
+    @GetMapping("/{laboratory-id}/orders")
+    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(@PathVariable(name = "laboratory-id") String laboratoryId, @RequestParam(name = "status", required = false) String status);
+
+    @GetMapping("/{laboratory-id}/{member-id}/materials")
+    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(@PathVariable(name = "laboratory-id") String laboratoryId, @PathVariable(name = "member-id") String memberId);
+
+    @PutMapping("/{order-id}")
+    ResponseEntity<GeneralResponse<Object>> responseOrder(@PathVariable(name = "order-id") String orderId, @RequestBody ResponseOrderRequest request);
 
     @GetMapping("/{laboratory-id}/materials")
     ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterialByLabId(

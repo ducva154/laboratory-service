@@ -3,10 +3,14 @@ package vn.edu.fpt.laboratory.entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import vn.edu.fpt.laboratory.entity.common.Auditor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author : Hoang Lam
@@ -32,4 +36,8 @@ public class MemberInfo extends Auditor {
     private String accountId;
     @Field(name = "role")
     private String role;
+    @Field(name = "ordered_materials")
+    @DBRef(lazy = true)
+    @Builder.Default
+    private List<Material> orderedMaterials = new ArrayList<>();
 }
