@@ -334,7 +334,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
 
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        if (memberInfos.stream().noneMatch(v -> v.getAccountId().equals(request.getAccountId()))) {
+        if (memberInfos.stream().anyMatch(v -> v.getAccountId().equals(request.getAccountId()))) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account ID already exist in lab");
         }
         Application application = Application.builder()
