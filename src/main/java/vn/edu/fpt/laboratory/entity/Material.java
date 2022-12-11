@@ -47,4 +47,6 @@ public class Material extends Auditor {
     @Field(name = "images")
     @DBRef(lazy = true)
     private _Image images;
+    @Field(name = "borrow_time")
+    private List<BorrowTime> borrowTime;
 }

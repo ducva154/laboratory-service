@@ -492,6 +492,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     private GetApplicationResponse convertApplicationToGetApplicationResponse(Application application) {
         return GetApplicationResponse.builder()
                 .applicationId(application.getApplicationId())
+                .status(application.getStatus().getStatusName())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(application.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(application.getCreatedBy()))

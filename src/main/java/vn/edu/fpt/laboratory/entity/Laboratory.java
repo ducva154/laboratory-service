@@ -59,5 +59,8 @@ public class Laboratory extends Auditor {
     @DBRef(lazy = true)
     @Builder.Default
     private List<Application> applications = new ArrayList<>();
-
+    @Field(name = "order")
+    @DBRef(lazy = true)
+    @Builder.Default
+    private List<OrderHistory> orders = new ArrayList<>();
 }
