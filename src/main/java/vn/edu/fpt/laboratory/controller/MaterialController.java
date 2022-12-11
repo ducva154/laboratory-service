@@ -58,8 +58,8 @@ public interface MaterialController {
     @GetMapping("/{laboratory-id}/orders")
     ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(@PathVariable(name = "laboratory-id") String laboratoryId, @RequestParam(name = "status", required = false) String status);
 
-    @GetMapping("/{laboratory-id}/{member-id}/materials")
-    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(@PathVariable(name = "laboratory-id") String laboratoryId, @PathVariable(name = "member-id") String memberId);
+    @GetMapping("/{laboratory-id}/{account-id}/materials")
+    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(@PathVariable(name = "laboratory-id") String laboratoryId, @PathVariable(name = "account-id") String accountId);
 
     @PutMapping("/{order-id}")
     ResponseEntity<GeneralResponse<Object>> responseOrder(@PathVariable(name = "order-id") String orderId, @RequestBody ResponseOrderRequest request);
