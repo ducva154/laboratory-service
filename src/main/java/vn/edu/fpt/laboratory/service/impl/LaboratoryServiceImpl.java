@@ -341,7 +341,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
 
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        if (memberInfos.stream().noneMatch(v -> v.getAccountId().equals(request.getAccountId()))) {
+        if (memberInfos.stream().anyMatch(v -> v.getAccountId().equals(request.getAccountId()))) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account ID already exist in lab");
         }
         Application application = Application.builder()
@@ -468,6 +468,23 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                         .build();
                 sendEmailProducer.sendMessage(sendEmailEvent);
             }
+        }
+        MemberInfo memberInfo = MemberInfo.builder()
+                .accountId(application.getAccountId())
+                .role(LaboratoryRoleEnum.MEMBER.getRole())
+                .build();
+        try {
+            memberInfo = memberInfoRepository.save(memberInfo);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't create member info in database");
+        }
+        List<MemberInfo> memberInfos = laboratory.getMembers();
+        memberInfos.add(memberInfo);
+        laboratory.setMembers(memberInfos);
+        try {
+            laboratoryRepository.save(laboratory);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save laboratory after add member in database");
         }
     }
 
