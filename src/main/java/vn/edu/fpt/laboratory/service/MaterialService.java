@@ -1,6 +1,7 @@
 package vn.edu.fpt.laboratory.service;
 
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.laboratory.GetOrderRequest;
 import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.material.*;
 
@@ -27,7 +28,7 @@ public interface MaterialService {
 
     void returnMaterial(String orderId);
 
-    PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, String status);
+    PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, GetOrderRequest request);
 
     PageableResponse<GetOrderedMaterialResponse> getOrderedMaterialInLabByAccountId(String laboratoryId, String accountId);
 

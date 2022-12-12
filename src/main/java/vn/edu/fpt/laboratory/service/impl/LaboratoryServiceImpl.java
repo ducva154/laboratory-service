@@ -182,12 +182,29 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
-    public PageableResponse<GetMemberResponse> getMemberInLab(String labId) {
+    public PageableResponse<GetMemberResponse> getMemberInLab(String labId, GetMemberInLaboratoryRequest request) {
+        Query query = new Query();
+        if (Objects.nonNull(request.getMemberId())) {
+            query.addCriteria(Criteria.where("_id").is(request.getMemberId()));
+        }
+        if (Objects.nonNull(request.getRole())) {
+            query.addCriteria(Criteria.where("role").is(request.getRole()));
+        }
+
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab ID not exist"));
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberResponse).collect(Collectors.toList());
-        return new PageableResponse<>(getMemberResponses);
+        List<ObjectId> memberInfoIds = memberInfos.stream().map(MemberInfo::getMemberId).map(ObjectId::new).collect(Collectors.toList());
+        query.addCriteria(Criteria.where("_id").in(memberInfoIds));
+
+        BaseMongoRepository.addCriteriaWithAuditable(query, request);
+        Long totalElements = mongoTemplate.count(query, MemberInfo.class);
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+        List<MemberInfo> memberInfoList = mongoTemplate.find(query, MemberInfo.class);
+
+        List<GetMemberResponse> getMemberResponses = memberInfoList.stream().map(this::convertMemberToGetMemberResponse).collect(Collectors.toList());
+        return new PageableResponse<>(request, totalElements, getMemberResponses);
     }
 
     @Override
@@ -421,21 +438,26 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
-    public PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, String status) {
-        Laboratory laboratory = laboratoryRepository.findById(labId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab id is not exist"));
-        List<Application> applications;
-        if (Objects.nonNull(status)) {
-            try {
-                ApplicationStatusEnum.valueOf(status);
-            } catch (Exception ex) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Status invalid");
-            }
-            applications = laboratory.getApplications().stream().filter(v -> v.getStatus().getStatusName().equals(status)).collect(Collectors.toList());
-        } else {
-            applications = laboratory.getApplications();
+    public PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, GetApplicationRequest request) {
+        Query query = new Query();
+        if (Objects.nonNull(request.getApplicationId())) {
+            query.addCriteria(Criteria.where("_id").is(request.getApplicationId()));
         }
+        if (Objects.nonNull(request.getStatus())) {
+            query.addCriteria(Criteria.where("cv_name").is(request.getStatus()));
+        }
+        Laboratory laboratory = laboratoryRepository.findById(labId).orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab id is not exist"));
+        List<ObjectId> applicationIds = laboratory.getApplications().stream().map(Application::getApplicationId).map(ObjectId::new).collect(Collectors.toList());
+        query.addCriteria(Criteria.where("_id").in(applicationIds));
+
+        BaseMongoRepository.addCriteriaWithAuditable(query, request);
+        Long totalElements = mongoTemplate.count(query, Application.class);
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+        List<Application> applications = mongoTemplate.find(query, Application.class);
+
         List<GetApplicationResponse> getApplicationResponses = applications.stream().map(this::convertApplicationToGetApplicationResponse).collect(Collectors.toList());
-        return new PageableResponse<>(getApplicationResponses);
+        return new PageableResponse<>(request, totalElements, getApplicationResponses);
     }
 
     @Override

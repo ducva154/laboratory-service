@@ -9,6 +9,7 @@ import vn.edu.fpt.laboratory.controller.MaterialController;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.SortableRequest;
+import vn.edu.fpt.laboratory.dto.request.laboratory.GetOrderRequest;
 import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.material.*;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
@@ -65,16 +66,16 @@ public class MaterialControllerImpl implements MaterialController {
                                                                                               Integer page,
                                                                                               Integer size, String laboratoryId) {
         List<SortableRequest> sortableRequests = new ArrayList<>();
-        if(Objects.nonNull(materialNameSortBy)){
+        if (Objects.nonNull(materialNameSortBy)) {
             sortableRequests.add(new SortableRequest("material_name", materialNameSortBy));
         }
-        if(Objects.nonNull(statusSortBy)){
+        if (Objects.nonNull(statusSortBy)) {
             sortableRequests.add(new SortableRequest("status", statusSortBy));
         }
-        if(Objects.nonNull(createdDateSortBy)){
+        if (Objects.nonNull(createdDateSortBy)) {
             sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
         }
-        if(Objects.nonNull(lastModifiedDateSortBy)){
+        if (Objects.nonNull(lastModifiedDateSortBy)) {
             sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
         }
         GetMaterialRequest request = GetMaterialRequest.builder()
@@ -112,12 +113,58 @@ public class MaterialControllerImpl implements MaterialController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(String laboratoryId, String status) {
-        return responseFactory.response(materialService.getOrderByLabId(laboratoryId, status));
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(
+            String laboratoryId,
+            String orderId,
+            String materialName,
+            String materialNameSortBy,
+            String status,
+            String statusSortBy,
+            String createdBy,
+            String createdDateFrom,
+            String createdDateTo,
+            String createdDateSortBy,
+            String lastModifiedBy,
+            String lastModifiedDateFrom,
+            String lastModifiedDateTo,
+            String lastModifiedDateSortBy,
+            Integer page,
+            Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if (Objects.nonNull(materialNameSortBy)) {
+            sortableRequests.add(new SortableRequest("material_name", materialNameSortBy));
+        }
+        if (Objects.nonNull(statusSortBy)) {
+            sortableRequests.add(new SortableRequest("status", statusSortBy));
+        }
+        if (Objects.nonNull(createdDateSortBy)) {
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if (Objects.nonNull(lastModifiedDateSortBy)) {
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
+        GetOrderRequest request = GetOrderRequest.builder()
+                .orderId(orderId)
+                .materialName(materialName)
+                .status(status)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(materialService.getOrderByLabId(laboratoryId, request));
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(String laboratoryId, String accountId) {
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(
+            String laboratoryId,
+            String accountId) {
+
         return responseFactory.response(materialService.getOrderedMaterialInLabByAccountId(laboratoryId, accountId));
     }
 

@@ -2,6 +2,7 @@ package vn.edu.fpt.laboratory.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -13,6 +14,7 @@ import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
+import vn.edu.fpt.laboratory.dto.request.laboratory.GetOrderRequest;
 import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.image.GetImageResponse;
 import vn.edu.fpt.laboratory.dto.response.material.*;
@@ -374,12 +376,31 @@ public class MaterialServiceImpl implements MaterialService {
     }
 
     @Override
-    public PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, String status) {
+    public PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, GetOrderRequest request) {
+        Query query = new Query();
+        if (Objects.nonNull(request.getOrderId())) {
+            query.addCriteria(Criteria.where("_id").is(request.getOrderId()));
+        }
+        if (Objects.nonNull(request.getMaterialName())) {
+            query.addCriteria(Criteria.where("material_name").regex(request.getMaterialName()));
+        }
+        if (Objects.nonNull(request.getStatus())) {
+            query.addCriteria(Criteria.where("status").is(request.getStatus()));
+        }
+
         Laboratory laboratory = laboratoryRepository.findById(laboratoryId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
-        List<OrderHistory> orders = laboratory.getOrders();
+        List<ObjectId> orderIds = laboratory.getOrders().stream().map(OrderHistory::getOrderId).map(ObjectId::new).collect(Collectors.toList());
+        query.addCriteria(Criteria.where("_id").in(orderIds));
+
+        BaseMongoRepository.addCriteriaWithAuditable(query, request);
+        Long totalElements = mongoTemplate.count(query, OrderHistory.class);
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+        List<OrderHistory> orders = mongoTemplate.find(query, OrderHistory.class);
+
         List<GetOrderedResponse> orderedMaterialResponses = orders.stream().map(this::convertOrderHistoryToGetOrderedResponse).collect(Collectors.toList());
-        return new PageableResponse<> (orderedMaterialResponses);
+        return new PageableResponse<> (request, totalElements, orderedMaterialResponses);
     }
 
     private GetOrderedResponse convertOrderHistoryToGetOrderedResponse(OrderHistory orderHistory) {
