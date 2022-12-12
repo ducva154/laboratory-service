@@ -27,17 +27,6 @@ import vn.edu.fpt.laboratory.service.MemberInfoService;
 public class MemberControllerImpl implements MemberController {
     private final ResponseFactory responseFactory;
     private final MemberInfoService memberInfoService;
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> addMemberToProject(String projectId, AddMemberToProjectRequest request) {
-        memberInfoService.addMemberToProject(projectId, request);
-        return responseFactory.response(ResponseStatusEnum.SUCCESS);
-    }
-
-    @Override
-    public ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(String labId, AddMemberToLaboratoryRequest request) {
-        memberInfoService.addMemberToLaboratory(labId, request);
-        return responseFactory.response(ResponseStatusEnum.SUCCESS);
-    }
 
     @Override
     public ResponseEntity<GeneralResponse<Object>> updateMember(String memberId, UpdateMemberInfoRequest request) {

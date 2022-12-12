@@ -260,31 +260,35 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
-    public GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request) {
+    public PageableResponse<GetLaboratoryResponse> getLaboratory(GetLaboratoryRequest request) {
         request.setIsContain(true);
 
-        PageableResponse<GetLaboratoryResponse> joinedLaboratories;
+        PageableResponse<GetLaboratoryResponse> getLaboratoryResponse;
         try {
-            joinedLaboratories = getLaboratoryInDatabase(request);
+            getLaboratoryResponse = getLaboratoryInDatabase(request);
         }catch (Exception ex){
             log.error(ex.getMessage());
-            throw new BusinessException("INDSF");
+            throw new BusinessException("Can't get laboratory in database: "+ ex.getMessage());
         }
+
+
+        return getLaboratoryResponse;
+    }
+
+    @Override
+    public PageableResponse<GetLaboratoryResponse> getLaboratorySuggestion(GetLaboratoryRequest request) {
         request.setIsContain(false);
-        request.setSize(request.getSuggestionSize());
-        request.setPage(request.getSuggestionPage());
 
-        PageableResponse<GetLaboratoryResponse> suggestionLaboratories ;
+        PageableResponse<GetLaboratoryResponse> getLaboratoryResponse;
         try {
-            suggestionLaboratories = getLaboratoryInDatabase(request);
+            getLaboratoryResponse = getLaboratoryInDatabase(request);
         }catch (Exception ex){
-            throw new BusinessException("SDF");
+            log.error(ex.getMessage());
+            throw new BusinessException("Can't get laboratory in database: "+ ex.getMessage());
         }
 
-        return GetLaboratoryContainerResponse.builder()
-                .joinedLaboratories(joinedLaboratories)
-                .suggestLaboratories(suggestionLaboratories)
-                .build();
+
+        return getLaboratoryResponse;
     }
 
     private PageableResponse<GetLaboratoryResponse> getLaboratoryInDatabase(GetLaboratoryRequest request) {

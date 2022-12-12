@@ -12,6 +12,7 @@ import vn.edu.fpt.laboratory.dto.common.SortableRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.*;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
@@ -20,6 +21,7 @@ import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
 import vn.edu.fpt.laboratory.service.MaterialService;
+import vn.edu.fpt.laboratory.service.MemberInfoService;
 import vn.edu.fpt.laboratory.service.ProjectService;
 
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     private final LaboratoryService laboratoryService;
     private final ProjectService projectService;
     private final MaterialService materialService;
+    private final MemberInfoService memberInfoService;
 
     @Override
     public ResponseEntity<GeneralResponse<CreateLaboratoryResponse>> createLaboratory(CreateLaboratoryRequest request) {
@@ -88,7 +91,7 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<GetLaboratoryContainerResponse>> getLaboratory(
+    public ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratory(
             String laboratoryId,
             String accountId,
             String laboratoryName,
@@ -96,9 +99,7 @@ public class LaboratoryControllerImpl implements LaboratoryController {
             String major,
             String majorSortBy,
             Integer page,
-            Integer size,
-            Integer suggestionPage,
-            Integer suggestionSize) {
+            Integer size) {
         List<SortableRequest> sortableRequests = new ArrayList<>();
         if(Objects.nonNull(laboratoryNameSortBy)){
             sortableRequests.add(new SortableRequest("laboratory_name", laboratoryNameSortBy));
@@ -115,10 +116,37 @@ public class LaboratoryControllerImpl implements LaboratoryController {
                 .page(page)
                 .size(size)
                 .sortBy(sortableRequests)
-                .suggestionPage(suggestionPage)
-                .suggestionSize(suggestionSize)
                 .build();
         return responseFactory.response(laboratoryService.getLaboratory(request));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratorySuggestion( String laboratoryId,
+                                                                                                    String accountId,
+                                                                                                    String laboratoryName,
+                                                                                                    String laboratoryNameSortBy,
+                                                                                                    String major,
+                                                                                                    String majorSortBy,
+                                                                                                    Integer page,
+                                                                                                    Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if(Objects.nonNull(laboratoryNameSortBy)){
+            sortableRequests.add(new SortableRequest("laboratory_name", laboratoryNameSortBy));
+        }
+        if(Objects.nonNull(majorSortBy)){
+            sortableRequests.add(new SortableRequest("major", majorSortBy));
+        }
+
+        GetLaboratoryRequest request = GetLaboratoryRequest.builder()
+                .laboratoryId(laboratoryId)
+                .accountId(accountId)
+                .laboratoryName(laboratoryName)
+                .major(major)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(laboratoryService.getLaboratorySuggestion(request));
     }
 
     @Override
@@ -228,5 +256,11 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     @Override
     public ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(String applicationId) {
         return responseFactory.response(laboratoryService.getApplicationByApplicationId(applicationId));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(String labId, AddMemberToLaboratoryRequest request) {
+        memberInfoService.addMemberToLaboratory(labId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 }

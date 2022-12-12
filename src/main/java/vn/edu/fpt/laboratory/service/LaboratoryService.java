@@ -23,8 +23,9 @@ public interface LaboratoryService {
 
     GetLaboratoryDetailResponse getLaboratoryDetail(String labId);
 
-    GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request);
+    PageableResponse<GetLaboratoryResponse> getLaboratory(GetLaboratoryRequest request);
 
+    PageableResponse<GetLaboratoryResponse> getLaboratorySuggestion(GetLaboratoryRequest request);
     PageableResponse<GetMemberResponse> getMemberInLab(String labId, GetMemberInLaboratoryRequest request);
 
     void removeMemberFromLaboratory(String labId, String memberId);

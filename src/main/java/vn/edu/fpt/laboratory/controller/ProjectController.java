@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
@@ -62,4 +63,6 @@ public interface ProjectController {
     @DeleteMapping("/{project-id}/members/{member-id}")
     ResponseEntity<GeneralResponse<Object>> removeMemberFromProject(@PathVariable(name = "project-id") String projectId, @PathVariable(name = "member-id") String memberId);
 
+    @PostMapping("/{project-id}/members/member")
+    ResponseEntity<GeneralResponse<Object>> addMemberToProject(@PathVariable(name = "project-id") String projectId, @RequestBody AddMemberToProjectRequest request);
 }

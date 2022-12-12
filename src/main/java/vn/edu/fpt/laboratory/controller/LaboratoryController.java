@@ -11,6 +11,7 @@ import vn.edu.fpt.laboratory.dto.request.laboratory.ReviewApplicationRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
@@ -57,7 +58,7 @@ public interface LaboratoryController {
     ResponseEntity<GeneralResponse<Object>> deleteLaboratory(@PathVariable(name = "lab-id") String labId);
 
     @GetMapping
-    ResponseEntity<GeneralResponse<GetLaboratoryContainerResponse>> getLaboratory(
+    ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratory(
             @RequestParam(name = "lab-id", required = false) String laboratoryId,
             @RequestParam(name = "account-id", required = false) String accountId,
             @RequestParam(name = "lab-name", required = false) String laboratoryName,
@@ -65,9 +66,19 @@ public interface LaboratoryController {
             @RequestParam(name = "major", required = false) String major,
             @RequestParam(name = "major-sort-by", required = false) String majorSortBy,
             @RequestParam(name = "page", required = false) Integer page,
-            @RequestParam(name = "size", required = false) Integer size,
-            @RequestParam(name = "suggestion-page", required = false) Integer suggestionPage,
-            @RequestParam(name = "suggestion-size", required = false) Integer suggestionSize
+            @RequestParam(name = "size", required = false) Integer size
+    );
+
+    @GetMapping("/suggestion")
+    ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratorySuggestion(
+            @RequestParam(name = "lab-id", required = false) String laboratoryId,
+            @RequestParam(name = "account-id", required = false) String accountId,
+            @RequestParam(name = "lab-name", required = false) String laboratoryName,
+            @RequestParam(name = "lab-name-sort-by", required = false) String laboratoryNameSortBy,
+            @RequestParam(name = "major", required = false) String major,
+            @RequestParam(name = "major-sort-by", required = false) String majorSortBy,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size
     );
 
     @GetMapping("/{lab-id}")
@@ -118,5 +129,8 @@ public interface LaboratoryController {
 
     @GetMapping("/applications/{application-id}")
     ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
+
+    @PostMapping("/{lab-id}/members/member")
+    ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody AddMemberToLaboratoryRequest request);
 
 }

@@ -9,6 +9,7 @@ import vn.edu.fpt.laboratory.controller.ProjectController;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.SortableRequest;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
@@ -18,6 +19,7 @@ import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
+import vn.edu.fpt.laboratory.service.MemberInfoService;
 import vn.edu.fpt.laboratory.service.ProjectService;
 
 import java.util.ArrayList;
@@ -38,7 +40,7 @@ public class ProjectControllerImpl implements ProjectController {
 
     private final ResponseFactory responseFactory;
     private final ProjectService projectService;
-
+    private final MemberInfoService memberInfoService;
 
     @Override
     public ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProject(String projectId,
@@ -127,5 +129,9 @@ public class ProjectControllerImpl implements ProjectController {
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
-
+    @Override
+    public ResponseEntity<GeneralResponse<Object>> addMemberToProject(String projectId, AddMemberToProjectRequest request) {
+        memberInfoService.addMemberToProject(projectId, request);
+        return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
 }
