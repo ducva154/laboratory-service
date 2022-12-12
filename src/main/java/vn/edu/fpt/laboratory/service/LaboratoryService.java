@@ -25,7 +25,7 @@ public interface LaboratoryService {
 
     GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request);
 
-    PageableResponse<GetMemberResponse> getMemberInLab(String labId);
+    PageableResponse<GetMemberResponse> getMemberInLab(String labId, GetMemberInLaboratoryRequest request);
 
     void removeMemberFromLaboratory(String labId, String memberId);
 
@@ -33,7 +33,7 @@ public interface LaboratoryService {
 
     GetApplicationDetailResponse getApplicationByApplicationId(String applicationId);
 
-    PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, String status);
+    PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, GetApplicationRequest request);
 
     void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request);
 }

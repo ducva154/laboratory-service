@@ -127,8 +127,44 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(String labId) {
-        return responseFactory.response(laboratoryService.getMemberInLab(labId));
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(String labId,
+                                                                                                      String memberId,
+                                                                                                      String role,
+                                                                                                      String roleSortBy,
+                                                                                                      String createdBy,
+                                                                                                      String createdDateFrom,
+                                                                                                      String createdDateTo,
+                                                                                                      String createdDateSortBy,
+                                                                                                      String lastModifiedBy,
+                                                                                                      String lastModifiedDateFrom,
+                                                                                                      String lastModifiedDateTo,
+                                                                                                      String lastModifiedDateSortBy,
+                                                                                                      Integer page,
+                                                                                                      Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if(Objects.nonNull(roleSortBy)) {
+            sortableRequests.add(new SortableRequest("role", roleSortBy));
+        }
+        if(Objects.nonNull(createdDateSortBy)){
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if(Objects.nonNull(lastModifiedDateSortBy)){
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
+        GetMemberInLaboratoryRequest request = GetMemberInLaboratoryRequest.builder()
+                .memberId(memberId)
+                .role(role)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(laboratoryService.getMemberInLab(labId, request));
     }
 
     @Override
@@ -149,8 +185,44 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(String labId, String status) {
-        return responseFactory.response(laboratoryService.getApplicationByLabId(labId, status));
+    public ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(String labId,
+                                                                                                           String applicationId,
+                                                                                                           String status,
+                                                                                                           String statusSortBy,
+                                                                                                           String createdBy,
+                                                                                                           String createdDateFrom,
+                                                                                                           String createdDateTo,
+                                                                                                           String createdDateSortBy,
+                                                                                                           String lastModifiedBy,
+                                                                                                           String lastModifiedDateFrom,
+                                                                                                           String lastModifiedDateTo,
+                                                                                                           String lastModifiedDateSortBy,
+                                                                                                           Integer page,
+                                                                                                           Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if(Objects.nonNull(statusSortBy)) {
+            sortableRequests.add(new SortableRequest("status", statusSortBy));
+        }
+        if(Objects.nonNull(createdDateSortBy)){
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if(Objects.nonNull(lastModifiedDateSortBy)){
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
+        GetApplicationRequest request = GetApplicationRequest.builder()
+                .applicationId(applicationId)
+                .status(status)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(laboratoryService.getApplicationByLabId(labId, request));
     }
 
     @Override

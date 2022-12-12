@@ -56,10 +56,30 @@ public interface MaterialController {
     ResponseEntity<GeneralResponse<Object>> returnMaterial(@PathVariable(name = "order-id") String orderId);
 
     @GetMapping("/{laboratory-id}/orders")
-    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(@PathVariable(name = "laboratory-id") String laboratoryId, @RequestParam(name = "status", required = false) String status);
+    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(
+            @PathVariable(name = "laboratory-id") String laboratoryId,
+            @RequestParam(name = "order-id", required = false) String orderId,
+            @RequestParam(name = "material-name", required = false) String materialName,
+            @RequestParam(name = "material-name-sort-by", required = false) String materialNameSortBy,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "status-sort-by", required = false) String statusSortBy,
+            @RequestParam(name = "created-by", required = false) String createdBy,
+            @RequestParam(name = "created-date-from", required = false) String createdDateFrom,
+            @RequestParam(name = "created-date-to", required = false) String createdDateTo,
+            @RequestParam(name = "created-date-sort-by", required = false) String createdDateSortBy,
+            @RequestParam(name = "last-modified-by", required = false) String lastModifiedBy,
+            @RequestParam(name = "last-modified-date-from", required = false) String lastModifiedDateFrom,
+            @RequestParam(name = "last-modified-date-to", required = false) String lastModifiedDateTo,
+            @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size);
+
+
 
     @GetMapping("/{laboratory-id}/{account-id}/materials")
-    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(@PathVariable(name = "laboratory-id") String laboratoryId, @PathVariable(name = "account-id") String accountId);
+    ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(
+            @PathVariable(name = "laboratory-id") String laboratoryId,
+            @PathVariable(name = "account-id") String accountId);
 
     @PutMapping("/{order-id}")
     ResponseEntity<GeneralResponse<Object>> responseOrder(@PathVariable(name = "order-id") String orderId, @RequestBody ResponseOrderRequest request);

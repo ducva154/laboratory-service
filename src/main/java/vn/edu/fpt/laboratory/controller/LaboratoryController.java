@@ -42,7 +42,8 @@ public interface LaboratoryController {
     @PutMapping("/{laboratory-id}/materials/{material-id}")
     ResponseEntity<GeneralResponse<Object>> updateMaterial(@PathVariable(name = "laboratory-id") String laboratoryId,
                                                            @PathVariable(name = "material-id") String materialId,
-                                                           @RequestBody UpdateMaterialRequest request );
+                                                           @RequestBody UpdateMaterialRequest request);
+
     @PutMapping("/{laboratory-id}/projects/{project-id}")
     ResponseEntity<GeneralResponse<Object>> updateProject(@PathVariable(name = "laboratory-id") String laboratoryId,
                                                           @PathVariable(name = "project-id") String projectId,
@@ -67,13 +68,27 @@ public interface LaboratoryController {
             @RequestParam(name = "size", required = false) Integer size,
             @RequestParam(name = "suggestion-page", required = false) Integer suggestionPage,
             @RequestParam(name = "suggestion-size", required = false) Integer suggestionSize
-            );
+    );
 
     @GetMapping("/{lab-id}")
     ResponseEntity<GeneralResponse<GetLaboratoryDetailResponse>> getLaboratoryDetail(@PathVariable(name = "lab-id") String labId);
 
     @GetMapping("/{lab-id}/members")
-    ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(@PathVariable(name = "lab-id") String labId);
+    ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(
+            @PathVariable(name = "lab-id") String labId,
+            @RequestParam(name = "member-id", required = false) String memberId,
+            @RequestParam(name = "role", required = false) String role,
+            @RequestParam(name = "role-sort-by", required = false) String roleSortBy,
+            @RequestParam(name = "created-by", required = false) String createdBy,
+            @RequestParam(name = "created-date-from", required = false) String createdDateFrom,
+            @RequestParam(name = "created-date-to", required = false) String createdDateTo,
+            @RequestParam(name = "created-date-sort-by", required = false) String createdDateSortBy,
+            @RequestParam(name = "last-modified-by", required = false) String lastModifiedBy,
+            @RequestParam(name = "last-modified-from", required = false) String lastModifiedDateFrom,
+            @RequestParam(name = "last-modified-to", required = false) String lastModifiedDateTo,
+            @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size);
 
     @DeleteMapping("/{lab-id}/members/{member-id}")
     ResponseEntity<GeneralResponse<Object>> removeMemberFromLaboratory(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);
@@ -85,8 +100,21 @@ public interface LaboratoryController {
     ResponseEntity<GeneralResponse<Object>> reviewApplication(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "application-id") String applicationId, @RequestBody ReviewApplicationRequest request);
 
     @GetMapping("/{lab-id}/applications")
-    ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(@PathVariable(name = "lab-id") String labId,
-        @RequestParam(value = "status", required = false) String status);
+    ResponseEntity<GeneralResponse<PageableResponse<GetApplicationResponse>>> getApplicationByLabId(
+            @PathVariable(name = "lab-id") String labId,
+            @RequestParam(name = "application-id", required = false) String applicationId,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "status-sort-by", required = false) String statusSortBy,
+            @RequestParam(name = "created-by", required = false) String createdBy,
+            @RequestParam(name = "created-date-from", required = false) String createdDateFrom,
+            @RequestParam(name = "created-date-to", required = false) String createdDateTo,
+            @RequestParam(name = "created-date-sort-by", required = false) String createdDateSortBy,
+            @RequestParam(name = "last-modified-by", required = false) String lastModifiedBy,
+            @RequestParam(name = "last-modified-from", required = false) String lastModifiedDateFrom,
+            @RequestParam(name = "last-modified-to", required = false) String lastModifiedDateTo,
+            @RequestParam(name = "last-modified-date-sort-by", required = false) String lastModifiedDateSortBy,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size);
 
     @GetMapping("/applications/{application-id}")
     ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
