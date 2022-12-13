@@ -296,6 +296,18 @@ public class MaterialServiceImpl implements MaterialService {
         } else if (request.getAmount() > material.getAmount()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
         }
+
+        List<OrderHistory> orderHistories = orderHistoryRepository.getOrderHistoriesByMaterialIdAndStatus(materialId, OrderStatusEnum.APPROVED.getStatus());
+        for (OrderHistory o:orderHistories) {
+            if (o.getOrderFrom().isBefore(request.getOrderFrom()) && o.getOrderTo().isAfter(request.getOrderFrom()) ||
+                    o.getOrderFrom().isBefore(request.getOrderTo()) && o.getOrderTo().isAfter(request.getOrderTo()) ||
+                    o.getOrderFrom().isBefore(request.getOrderFrom()) && o.getOrderTo().isAfter(request.getOrderTo()) ||
+                    o.getOrderFrom().isAfter(request.getOrderFrom()) && o.getOrderTo().isBefore(request.getOrderTo()) ||
+                    o.getOrderFrom().isEqual(request.getOrderFrom()) && o.getOrderTo().isEqual(request.getOrderTo())) {
+                Integer freeAmount = material.getAmount() - o.getAmount();
+            }
+        }
+
         List<BorrowTime> borrowTimeList = material.getBorrowTime();
         if (!borrowTimeList.isEmpty()) {
             for (BorrowTime b : borrowTimeList) {

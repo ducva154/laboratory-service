@@ -97,7 +97,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .toDate(request.getToDate())
-                .members(List.of(memberInfoInLab))
+                .ownerBy(memberInfo)
+                .members(List.of(memberInfo))
                 .build();
 
         try {

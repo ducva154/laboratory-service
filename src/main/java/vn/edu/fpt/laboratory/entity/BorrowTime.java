@@ -15,4 +15,5 @@ import java.time.LocalDateTime;
 public class BorrowTime {
     private LocalDateTime fromDate;
     private LocalDateTime toDate;
+    private Integer amount;
 }
