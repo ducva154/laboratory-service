@@ -26,5 +26,6 @@ public class GetProjectDetailResponse extends AuditableResponse {
     private String projectId;
     private String projectName;
     private String description;
+    private MemberInfoResponse memberInfo;
     private List<MemberInfoResponse> members;
 }

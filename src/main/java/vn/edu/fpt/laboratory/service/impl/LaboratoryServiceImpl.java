@@ -113,7 +113,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         }
         if (Objects.nonNull(request.getOwnerBy()) && ObjectId.isValid(request.getOwnerBy())) {
             log.info("Update Laboratory name: {}", request.getLaboratoryName());
-            MemberInfo memberInfo = laboratory.getMembers().stream().filter((v) -> v.getMemberId().equals(request.getOwnerBy())).findAny().orElseThrow();
+            MemberInfo memberInfo = laboratory.getMembers().stream().filter(v -> v.getMemberId().equals(request.getOwnerBy())).findAny().orElseThrow();
             laboratory.setOwnerBy(memberInfo);
         } else {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Invalid ownerBy");
@@ -142,11 +142,22 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     public GetLaboratoryDetailResponse getLaboratoryDetail(String labId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
-
+        String accountId = userInfoService.getAccountId();
+        Optional<MemberInfo> memberInfoOptional = laboratory.getMembers().stream().filter(v -> v.getAccountId().equals(accountId)).findFirst();
+        MemberInfoResponse memberInfoResponse = null;
+        if(memberInfoOptional.isPresent()){
+            MemberInfo memberInfo = memberInfoOptional.get();
+            memberInfoResponse = MemberInfoResponse.builder()
+                    .memberId(memberInfo.getMemberId())
+                    .accountId(memberInfo.getAccountId())
+                    .role(memberInfo.getRole())
+                    .build();
+        }
         MemberInfo ownerBy = laboratory.getOwnerBy();
         return GetLaboratoryDetailResponse.builder()
                 .laboratoryId(laboratory.getLaboratoryId())
                 .laboratoryName(laboratory.getLaboratoryName())
+                .memberInfo(memberInfoResponse)
                 .major(laboratory.getMajor())
                 .members(laboratory.getMembers().size())
                 .description(laboratory.getDescription())
@@ -213,7 +224,6 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Role id not found"));
 
         List<Project> projects = laboratory.getProjects();
-//        projects.stream().map(Project::getProjectId).forEach((projectId) -> projectService.removeMemberFromProject(projectId, memberId));
         for (Project p : projects ) {
             List<MemberInfo> memberInfos = p.getMembers();
             for (MemberInfo m : memberInfos ) {

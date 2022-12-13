@@ -1,7 +1,6 @@
 package vn.edu.fpt.laboratory.service;
 
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
-import vn.edu.fpt.laboratory.dto.request.member.AddMemberToProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
@@ -9,8 +8,6 @@ import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
-
-import java.util.List;
 
 /**
  * @author : Hoang Lam

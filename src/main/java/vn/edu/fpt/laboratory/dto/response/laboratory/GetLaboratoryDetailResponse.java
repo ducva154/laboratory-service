@@ -29,6 +29,7 @@ public class GetLaboratoryDetailResponse extends AuditableResponse {
     private String laboratoryId;
     private String laboratoryName;
     private String description;
+    private MemberInfoResponse memberInfo;
     private Integer members;
     private List<GetProjectResponse> projects;
     private String major;

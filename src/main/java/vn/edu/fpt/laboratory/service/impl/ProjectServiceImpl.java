@@ -68,7 +68,7 @@ public class ProjectServiceImpl implements ProjectService {
         AuditorUtils auditorUtils = new AuditorUtils();
 
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when create project: "+ labId));
 
         Optional<Project> projectInDb = projectRepository.findByProjectName(request.getProjectName());
         if (projectInDb.isPresent()) {
@@ -137,9 +137,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void updateProject(String labId, String projectId, _UpdateProjectRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when update project: "+ labId));
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist when update project: "+ projectId));
         List<Project> projects = laboratory.getProjects();
 
         if (projects.stream().noneMatch(m -> m.getProjectId().equals(projectId))) {
@@ -148,11 +148,13 @@ public class ProjectServiceImpl implements ProjectService {
 
         String accountId = userInfoService.getAccountId();
 
-        project.getMembers().stream()
+        MemberInfo memberInfo = project.getMembers().stream()
                 .filter(v -> v.getAccountId().equals(accountId))
-                .filter(v -> v.getRole().equals("OWNER") || v.getRole().equals("MANAGER")).findAny()
-                .orElseThrow(() -> new BusinessException("You don't have permission to update role"));
+                .findAny().orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account Id not in project"));
 
+        if(!memberInfo.getRole().equals("OWNER") && !memberInfo.getRole().equals("MANAGER")){
+            throw new BusinessException("You don't have permission to update role");
+        }
         if (Objects.nonNull(request.getProjectName())) {
             if (projects.stream().anyMatch(m -> m.getProjectName().equals(request.getProjectName()))) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
@@ -179,7 +181,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(String labId, String projectId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when delete project: "+ labId));
 
         List<Project> projects = laboratory.getProjects();
         String accountId = userInfoService.getAccountId();
@@ -257,7 +259,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public PageableResponse<GetMemberResponse> getMemberInProject(String projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist when get member in project: "+ projectId));
         List<MemberInfo> memberInfos = project.getMembers();
         List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberInfoResponse).collect(Collectors.toList());
         return new PageableResponse<>(getMemberResponses);
@@ -286,12 +288,17 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public GetProjectDetailResponse getProjectDetailByProjectId(String projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
-
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist when get project detail: "+ projectId));
+        String accountId = userInfoService.getAccountId();
+        MemberInfo memberInfo = project.getMembers().stream()
+                .filter(v -> v.getAccountId().equals(accountId))
+                .findFirst()
+                .orElse(null);
         return GetProjectDetailResponse.builder()
                 .projectId(project.getProjectId())
                 .projectName(project.getProjectName())
                 .description(project.getDescription())
+                .memberInfo(new MemberInfoResponse(memberInfo))
                 .members(project.getMembers().stream()
                         .map(this::convertMemberToMemberInfoResponse)
                         .collect(Collectors.toList()))

@@ -6,8 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import vn.edu.fpt.laboratory.dto.cache.UserInfo;
+import vn.edu.fpt.laboratory.entity.MemberInfo;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author : Hoang Lam
@@ -28,4 +30,12 @@ public class MemberInfoResponse implements Serializable {
     private String accountId;
     private String role;
     private UserInfo userInfo;
+
+    public MemberInfoResponse(MemberInfo memberInfo) {
+        if(Objects.nonNull(memberInfo)){
+            this.memberId = memberInfo.getMemberId();
+            this.accountId = memberInfo.getAccountId();
+            this.role = memberInfo.getRole();
+        }
+    }
 }
