@@ -11,12 +11,14 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.SortableRequest;
 import vn.edu.fpt.laboratory.dto.request.laboratory.*;
 import vn.edu.fpt.laboratory.dto.request.material.CreateMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.material.GetMaterialRequest;
+import vn.edu.fpt.laboratory.dto.request.material.OrderMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
-import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.material.*;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
@@ -67,20 +69,20 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> updateMaterial(String laboratoryId, String materialId, UpdateMaterialRequest request) {
-        materialService.updateMaterial(laboratoryId, materialId, request);
+    public ResponseEntity<GeneralResponse<Object>> updateMaterial(String labId, String materialId, UpdateMaterialRequest request) {
+        materialService.updateMaterial(labId, materialId, request);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> updateProject(String laboratoryId, String projectId, _UpdateProjectRequest request) {
-        projectService.updateProject(laboratoryId, projectId, request);
+    public ResponseEntity<GeneralResponse<Object>> updateProject(String labId, String projectId, _UpdateProjectRequest request) {
+        projectService.updateProject(labId, projectId, request);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<Object>> deleteMaterial(String laboratoryId, String materialId) {
-        materialService.deleteMaterial(laboratoryId, materialId);
+    public ResponseEntity<GeneralResponse<Object>> deleteMaterial(String labId, String materialId) {
+        materialService.deleteMaterial(labId, materialId);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
     }
 
@@ -92,26 +94,26 @@ public class LaboratoryControllerImpl implements LaboratoryController {
 
     @Override
     public ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratory(
-            String laboratoryId,
+            String labId,
             String accountId,
-            String laboratoryName,
-            String laboratoryNameSortBy,
+            String labName,
+            String labNameSortBy,
             String major,
             String majorSortBy,
             Integer page,
             Integer size) {
         List<SortableRequest> sortableRequests = new ArrayList<>();
-        if(Objects.nonNull(laboratoryNameSortBy)){
-            sortableRequests.add(new SortableRequest("laboratory_name", laboratoryNameSortBy));
+        if(Objects.nonNull(labNameSortBy)){
+            sortableRequests.add(new SortableRequest("laboratory_name", labNameSortBy));
         }
         if(Objects.nonNull(majorSortBy)){
             sortableRequests.add(new SortableRequest("major", majorSortBy));
         }
 
         GetLaboratoryRequest request = GetLaboratoryRequest.builder()
-                .laboratoryId(laboratoryId)
+                .laboratoryId(labId)
                 .accountId(accountId)
-                .laboratoryName(laboratoryName)
+                .laboratoryName(labName)
                 .major(major)
                 .page(page)
                 .size(size)
@@ -121,26 +123,26 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratorySuggestion( String laboratoryId,
+    public ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getLaboratorySuggestion( String labId,
                                                                                                     String accountId,
-                                                                                                    String laboratoryName,
-                                                                                                    String laboratoryNameSortBy,
+                                                                                                    String labName,
+                                                                                                    String labNameSortBy,
                                                                                                     String major,
                                                                                                     String majorSortBy,
                                                                                                     Integer page,
                                                                                                     Integer size) {
         List<SortableRequest> sortableRequests = new ArrayList<>();
-        if(Objects.nonNull(laboratoryNameSortBy)){
-            sortableRequests.add(new SortableRequest("laboratory_name", laboratoryNameSortBy));
+        if(Objects.nonNull(labNameSortBy)){
+            sortableRequests.add(new SortableRequest("laboratory_name", labNameSortBy));
         }
         if(Objects.nonNull(majorSortBy)){
             sortableRequests.add(new SortableRequest("major", majorSortBy));
         }
 
         GetLaboratoryRequest request = GetLaboratoryRequest.builder()
-                .laboratoryId(laboratoryId)
+                .laboratoryId(labId)
                 .accountId(accountId)
-                .laboratoryName(laboratoryName)
+                .laboratoryName(labName)
                 .major(major)
                 .page(page)
                 .size(size)
@@ -153,6 +155,57 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     public ResponseEntity<GeneralResponse<GetLaboratoryDetailResponse>> getLaboratoryDetail(String labId) {
         return responseFactory.response(laboratoryService.getLaboratoryDetail(labId));
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMaterialResponse>>> getMaterial(String materialId,
+                                                                                              String materialName,
+                                                                                              String materialNameSortBy,
+                                                                                              String description,
+                                                                                              String status,
+                                                                                              String statusSortBy,
+                                                                                              String createdBy,
+                                                                                              String createdDateFrom,
+                                                                                              String createdDateTo,
+                                                                                              String createdDateSortBy,
+                                                                                              String lastModifiedBy,
+                                                                                              String lastModifiedDateFrom,
+                                                                                              String lastModifiedDateTo,
+                                                                                              String lastModifiedDateSortBy,
+                                                                                              Integer page,
+                                                                                              Integer size,
+                                                                                              String labId) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if (Objects.nonNull(materialNameSortBy)) {
+            sortableRequests.add(new SortableRequest("material_name", materialNameSortBy));
+        }
+        if (Objects.nonNull(statusSortBy)) {
+            sortableRequests.add(new SortableRequest("status", statusSortBy));
+        }
+        if (Objects.nonNull(createdDateSortBy)) {
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if (Objects.nonNull(lastModifiedDateSortBy)) {
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
+        GetMaterialRequest request = GetMaterialRequest.builder()
+                .laboratoryId(labId)
+                .materialId(materialId)
+                .materialName(materialName)
+                .description(description)
+                .status(status)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(materialService.getMaterial(request));
+    }
+
 
     @Override
     public ResponseEntity<GeneralResponse<PageableResponse<GetMemberResponse>>> getMemberInLaboratory(String labId,
@@ -262,5 +315,66 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     public ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(String labId, AddMemberToLaboratoryRequest request) {
         memberInfoService.addMemberToLaboratory(labId, request);
         return responseFactory.response(ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<OrderMaterialResponse>> orderMaterial(String labId, String materialId, OrderMaterialRequest request) {
+        return responseFactory.response(materialService.orderMaterial(labId, materialId, request), ResponseStatusEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedResponse>>> getOrderByLabId(
+            String labId,
+            String orderId,
+            String materialName,
+            String materialNameSortBy,
+            String status,
+            String statusSortBy,
+            String createdBy,
+            String createdDateFrom,
+            String createdDateTo,
+            String createdDateSortBy,
+            String lastModifiedBy,
+            String lastModifiedDateFrom,
+            String lastModifiedDateTo,
+            String lastModifiedDateSortBy,
+            Integer page,
+            Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if (Objects.nonNull(materialNameSortBy)) {
+            sortableRequests.add(new SortableRequest("material_name", materialNameSortBy));
+        }
+        if (Objects.nonNull(statusSortBy)) {
+            sortableRequests.add(new SortableRequest("status", statusSortBy));
+        }
+        if (Objects.nonNull(createdDateSortBy)) {
+            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
+        }
+        if (Objects.nonNull(lastModifiedDateSortBy)) {
+            sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
+        }
+        GetOrderRequest request = GetOrderRequest.builder()
+                .orderId(orderId)
+                .materialName(materialName)
+                .status(status)
+                .createdBy(createdBy)
+                .createdDateFrom(createdDateFrom)
+                .createdDateTo(createdDateTo)
+                .lastModifiedBy(lastModifiedBy)
+                .lastModifiedDateFrom(lastModifiedDateFrom)
+                .lastModifiedDateTo(lastModifiedDateTo)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(materialService.getOrderByLabId(labId, request));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetOrderedMaterialResponse>>> getOrderedMaterialInLabByAccountId(
+            String labId,
+            String accountId) {
+
+        return responseFactory.response(materialService.getOrderedMaterialInLabByAccountId(labId, accountId));
     }
 }

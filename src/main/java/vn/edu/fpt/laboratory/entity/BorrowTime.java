@@ -1,8 +1,6 @@
 package vn.edu.fpt.laboratory.entity;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @ToString
-@SuperBuilder
+@Builder
 public class BorrowTime {
     private LocalDateTime fromDate;
     private LocalDateTime toDate;

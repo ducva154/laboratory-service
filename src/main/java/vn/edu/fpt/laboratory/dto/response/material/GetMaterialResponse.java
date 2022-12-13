@@ -18,8 +18,8 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-@SuperBuilder
-public class GetMaterialResponse extends AuditableResponse implements Serializable {
+@Builder
+public class GetMaterialResponse implements Serializable {
 
     private static final long serialVersionUID = -2107177195120400774L;
     private String materialId;

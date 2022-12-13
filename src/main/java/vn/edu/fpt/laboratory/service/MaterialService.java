@@ -38,5 +38,4 @@ public interface MaterialService {
 
     void addImage(String materialId, AddImageRequest request);
 
-    PageableResponse<GetMaterialResponse> getMaterialByLabId(String labId);
 }

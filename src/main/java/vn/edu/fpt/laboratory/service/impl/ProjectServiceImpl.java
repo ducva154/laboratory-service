@@ -5,6 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.laboratory.config.kafka.producer.GenerateProjectAppProducer;
@@ -142,6 +146,13 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory not contain this project");
         }
 
+        String accountId = userInfoService.getAccountId();
+
+        project.getMembers().stream()
+                .filter(v -> v.getAccountId().equals(accountId))
+                .filter(v -> v.getRole().equals("OWNER") || v.getRole().equals("MANAGER")).findAny()
+                .orElseThrow(() -> new BusinessException("You don't have permission to update role"));
+
         if (Objects.nonNull(request.getProjectName())) {
             if (projects.stream().anyMatch(m -> m.getProjectName().equals(request.getProjectName()))) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
@@ -171,8 +182,17 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
 
         List<Project> projects = laboratory.getProjects();
-        if (projects.stream().noneMatch(v -> v.getProjectId().equals(projectId))){
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist");
+        String accountId = userInfoService.getAccountId();
+        Project project = projects.stream()
+                .filter(v -> v.getProjectId().equals(projectId))
+                .findAny()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project Id not exist"));
+        MemberInfo memberInfo = project.getMembers().stream()
+                .filter(v -> v.getAccountId().equals(accountId))
+                .findAny()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account Id not in project member"));
+        if(!memberInfo.getRole().equals("OWNER")){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "You don't have permission to delete project");
         }
         if(projects.removeIf(v -> v.getProjectId().equals(projectId))){
             log.info("Delete success");
@@ -187,6 +207,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         try {
             projectRepository.deleteById(projectId);
+            log.info("Delete project success: {}", project);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete project in database");
         }

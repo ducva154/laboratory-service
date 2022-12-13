@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
 import vn.edu.fpt.laboratory.constant.*;
-import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
@@ -86,6 +85,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .materialName(request.getMaterialName())
                 .description(request.getDescription())
                 .amount(request.getAmount())
+                .totalAmount(request.getAmount())
                 .note(request.getNote())
                 .images(image)
                 .build();
@@ -199,7 +199,13 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public PageableResponse<GetMaterialResponse> getMaterial(GetMaterialRequest request) {
+        Laboratory laboratory = laboratoryRepository.findById(request.getLaboratoryId().toString())
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab Id not exist"));
+        List<ObjectId> materialIds = laboratory.getMaterials().stream().map(Material::getMaterialId).map(ObjectId::new).collect(Collectors.toList());
+
         Query query = new Query();
+
+        query.addCriteria(Criteria.where("_id").in(materialIds));
         if (Objects.nonNull(request.getMaterialId())) {
             query.addCriteria(Criteria.where("_id").is(request.getMaterialId()));
         }
@@ -235,16 +241,6 @@ public class MaterialServiceImpl implements MaterialService {
                 .status(material.getStatus())
                 .amount(material.getAmount())
                 .image(s3BucketStorageService.getPublicURL(material.getImages().getFileKey()))
-                .createdBy(UserInfoResponse.builder()
-                        .accountId(material.getCreatedBy())
-                        .userInfo(userInfoService.getUserInfo(material.getCreatedBy()))
-                        .build())
-                .createdDate(material.getCreatedDate())
-                .lastModifiedBy(UserInfoResponse.builder()
-                        .accountId(material.getLastModifiedBy())
-                        .userInfo(userInfoService.getUserInfo(material.getLastModifiedBy()))
-                        .build())
-                .lastModifiedDate(material.getLastModifiedDate())
                 .build();
     }
 
@@ -254,6 +250,14 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
 
         _Image image = material.getImages();
+        List<BorrowTime> borrowTimes = material.getBorrowTime();
+        borrowTimes.removeIf(v -> v.getToDate().isBefore(LocalDateTime.now()));
+        material.setBorrowTime(borrowTimes);
+        try {
+            materialRepository.save(material);
+        }catch (Exception ex){
+            throw new BusinessException("Can't save material to database"+ ex.getMessage());
+        }
 
         return GetMaterialDetailResponse.builder()
                 .materialId(material.getMaterialId())
@@ -291,9 +295,8 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
-        if (material.getStatus().equals(MaterialStatusEnum.IN_USED.getStatus())) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
-        } else if (request.getAmount() > material.getAmount()) {
+
+        if (request.getAmount() > material.getTotalAmount()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
         }
 
@@ -347,7 +350,11 @@ public class MaterialServiceImpl implements MaterialService {
                             .build();
                     sendEmailProducer.sendMessage(sendEmailEvent);
                 }
+            }else{
+                log.info("Missing config key: ORDER_MATERIAL_TEMPLATE_ID");
             }
+        }else{
+            log.info("Laboratory don't has manager");
         }
 
         try {
@@ -560,14 +567,5 @@ public class MaterialServiceImpl implements MaterialService {
 //        } catch (Exception ex) {
 //            throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
 //        }
-    }
-
-    @Override
-    public PageableResponse<GetMaterialResponse> getMaterialByLabId(String labId) {
-        Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
-        List<Material> materials = laboratory.getMaterials();
-        List<GetMaterialResponse> materialResponses = materials.stream().map(this::convertMaterialToGetMaterialResponse).collect(Collectors.toList());
-        return new PageableResponse<>(materialResponses);
     }
 }

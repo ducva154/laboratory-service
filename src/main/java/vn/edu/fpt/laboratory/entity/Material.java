@@ -44,6 +44,8 @@ public class Material extends Auditor {
     private String status = MaterialStatusEnum.FREE.getStatus();
     @Field(name = "amount")
     private Integer amount;
+    @Field(name = "total_amount")
+    private Integer totalAmount;
     @Field(name = "images")
     @DBRef(lazy = true)
     private _Image images;
