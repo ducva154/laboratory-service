@@ -2,7 +2,6 @@ package vn.edu.fpt.laboratory.dto.response.material;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 
 import java.io.Serializable;
@@ -23,6 +22,6 @@ public class GetOrderedResponse implements Serializable {
     private Integer amount;
     private String reason;
     private String status;
-    private LocalDateTime fromDate;
-    private LocalDateTime toDate;
+    private LocalDateTime orderFromDate;
+    private LocalDateTime orderToDate;
 }

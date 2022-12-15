@@ -21,6 +21,6 @@ public class GetOrderedMaterialResponse implements Serializable {
     private String materialId;
     private String materialName;
     private GetImageResponse images;
-    private LocalDateTime fromDate;
-    private LocalDateTime toDate;
+    private LocalDateTime orderFromDate;
+    private LocalDateTime orderToDate;
 }

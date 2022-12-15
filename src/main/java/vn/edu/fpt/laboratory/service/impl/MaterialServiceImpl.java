@@ -296,19 +296,8 @@ public class MaterialServiceImpl implements MaterialService {
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
 
-        if (request.getAmount() > material.getTotalAmount()) {
+        if (request.getAmount() > material.getAmount()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
-        }
-
-        List<OrderHistory> orderHistories = orderHistoryRepository.getOrderHistoriesByMaterialIdAndStatus(materialId, OrderStatusEnum.APPROVED.getStatus());
-        for (OrderHistory o:orderHistories) {
-            if (o.getOrderFrom().isBefore(request.getOrderFrom()) && o.getOrderTo().isAfter(request.getOrderFrom()) ||
-                    o.getOrderFrom().isBefore(request.getOrderTo()) && o.getOrderTo().isAfter(request.getOrderTo()) ||
-                    o.getOrderFrom().isBefore(request.getOrderFrom()) && o.getOrderTo().isAfter(request.getOrderTo()) ||
-                    o.getOrderFrom().isAfter(request.getOrderFrom()) && o.getOrderTo().isBefore(request.getOrderTo()) ||
-                    o.getOrderFrom().isEqual(request.getOrderFrom()) && o.getOrderTo().isEqual(request.getOrderTo())) {
-                Integer freeAmount = material.getAmount() - o.getAmount();
-            }
         }
 
         List<BorrowTime> borrowTimeList = material.getBorrowTime();
@@ -323,7 +312,6 @@ public class MaterialServiceImpl implements MaterialService {
                 }
             }
         }
-
         OrderHistory orderHistory = OrderHistory.builder()
                 .reason(request.getReason())
                 .materialId(materialId)
@@ -392,6 +380,16 @@ public class MaterialServiceImpl implements MaterialService {
         } catch (Exception ex) {
             throw new BusinessException("Can't save order history to database: " + ex.getMessage());
         }
+
+        Material material = materialRepository.findById(orderHistory.getMaterialId())
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material Id not eixst"));
+        material.setAmount(material.getAmount() + orderHistory.getAmount());
+        material.setStatus(MaterialStatusEnum.FREE.getStatus());
+        try {
+            materialRepository.save(material);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save material to database: " + ex.getMessage());
+        }
     }
 
     @Override
@@ -439,8 +437,8 @@ public class MaterialServiceImpl implements MaterialService {
                     .amount(orderHistory.getAmount())
                     .reason(orderHistory.getReason())
                     .status(orderHistory.getStatus())
-                    .fromDate(orderHistory.getOrderFrom())
-                    .toDate(orderHistory.getOrderTo())
+                    .orderFromDate(orderHistory.getOrderFrom())
+                    .orderToDate(orderHistory.getOrderTo())
                     .build();
         }
     }
@@ -466,8 +464,8 @@ public class MaterialServiceImpl implements MaterialService {
                 .materialId(orderHistory.getMaterialId())
                 .materialName(material.getMaterialName())
                 .images(imageResponse)
-                .fromDate(orderHistory.getOrderFrom())
-                .toDate(orderHistory.getOrderTo())
+                .orderFromDate(orderHistory.getOrderFrom())
+                .orderToDate(orderHistory.getOrderTo())
                 .build();
     }
 
@@ -486,6 +484,19 @@ public class MaterialServiceImpl implements MaterialService {
                         .build();
                 List<BorrowTime> borrowTimeList = material.getBorrowTime();
                 borrowTimeList.add(borrowTime);
+                if(material.getAmount() < orderHistory.getAmount()){
+                    orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());
+                    try {
+                        orderHistoryRepository.save(orderHistory);
+                    }catch (Exception ex){
+                        throw new BusinessException("Can't update order history: "+ ex.getMessage());
+                    }
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material for this ticket");
+                }
+                if(material.getAmount() - orderHistory.getAmount() == 0){
+                    material.setStatus(MaterialStatusEnum.IN_USED.getStatus());
+                }
+                material.setAmount(material.getAmount() - orderHistory.getAmount());
                 material.setBorrowTime(borrowTimeList);
             } else {
                 orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());
