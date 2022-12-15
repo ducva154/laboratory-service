@@ -465,6 +465,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .materialId(orderHistory.getMaterialId())
                 .materialName(material.getMaterialName())
                 .images(imageResponse)
+                .status(orderHistory.getStatus())
                 .orderFromDate(orderHistory.getOrderFrom())
                 .orderToDate(orderHistory.getOrderTo())
                 .build();
