@@ -18,6 +18,7 @@ import java.util.List;
 public class GetOrderedMaterialResponse implements Serializable {
 
     private static final long serialVersionUID = 8434420456488166738L;
+    private String orderId;
     private String materialId;
     private String materialName;
     private GetImageResponse images;
