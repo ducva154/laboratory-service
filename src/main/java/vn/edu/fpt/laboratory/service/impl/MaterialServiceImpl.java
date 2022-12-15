@@ -463,6 +463,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .url(s3BucketStorageService.getPublicURL(material.getImages().getFileKey()))
                 .build();
         return GetOrderedMaterialResponse.builder()
+                .orderId(orderHistory.getOrderId())
                 .materialId(orderHistory.getMaterialId())
                 .materialName(material.getMaterialName())
                 .images(imageResponse)
