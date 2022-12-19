@@ -19,7 +19,6 @@ import java.io.Serializable;
 @Data
 @Builder
 public class CreateLaboratoryResponse implements Serializable {
-
     private static final long serialVersionUID = 7617441527298638166L;
     private String labId;
 }

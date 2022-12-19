@@ -30,8 +30,14 @@ public class _Image extends Auditor {
     private String imageId;
     @Field(name = "image_name")
     private String imageName;
-    @Field(name = "full_path")
-    private String fullPath;
-    @Field(name = "url")
-    private String url;
+    @Field(name = "file_key")
+    private String fileKey;
+    @Field(name = "size")
+    private String size;
+    @Field(name = "type")
+    private String type;
+    @Field(name = "length")
+    private Long length;
+    @Field(name = "mime_type")
+    private String mimeType;
 }

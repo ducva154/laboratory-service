@@ -24,10 +24,15 @@ import java.io.Serializable;
 public class GetMaterialRequest extends AuditableRequest implements Serializable {
 
     private static final long serialVersionUID = -2865662420994808313L;
+    private String laboratoryId;
     private String materialId;
     private String materialName;
     private String description;
     private String status;
+
+    public ObjectId getLaboratoryId() {
+        return RequestDataUtils.convertObjectId(laboratoryId);
+    }
 
     public ObjectId getMaterialId() {
         return RequestDataUtils.convertObjectId(materialId);

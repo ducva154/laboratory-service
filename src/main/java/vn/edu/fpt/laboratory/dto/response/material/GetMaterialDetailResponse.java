@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import vn.edu.fpt.laboratory.dto.common.AuditableResponse;
 import vn.edu.fpt.laboratory.dto.response.image.GetImageResponse;
+import vn.edu.fpt.laboratory.entity.BorrowTime;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,8 +28,9 @@ public class GetMaterialDetailResponse extends AuditableResponse implements Seri
     private String materialId;
     private String materialName;
     private String description;
+    private String note;
     private String status;
     private Integer amount;
-    private List<GetImageResponse> images;
-
+    private GetImageResponse images;
+    private List<BorrowTime> borrowTime;
 }

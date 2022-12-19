@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import vn.edu.fpt.laboratory.entity.common.Auditor;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,7 +28,7 @@ import java.util.List;
 @Setter
 @ToString
 @SuperBuilder
-public class Project extends Auditor {
+public class Project extends Auditor implements Serializable {
 
     private static final long serialVersionUID = -4011416111330368844L;
     @Id

@@ -4,6 +4,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.laboratory.entity.OrderHistory;
 
+import java.util.List;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -13,4 +15,5 @@ import vn.edu.fpt.laboratory.entity.OrderHistory;
  **/
 @Repository
 public interface OrderHistoryRepository extends MongoRepository<OrderHistory, String> {
+    List<OrderHistory> getOrderHistoriesByMaterialIdAndStatus(String materialId, String status);
 }

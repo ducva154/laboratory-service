@@ -8,21 +8,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 import vn.edu.fpt.laboratory.service.S3BucketStorageService;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.exception.BusinessException;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.Base64;
 
 /**
  * @author : Hoang Lam
@@ -41,31 +44,24 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
     @Value("${application.bucket}")
     private String bucket;
 
-    @Override
-    public String uploadFile(String path, String fileName, MultipartFile file) {
-        try {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(file.getSize());
-            metadata.setContentType(getContentType(fileName));
-            File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + fileName);
-            try (OutputStream os = Files.newOutputStream(Path.of(convFile.getPath()))) {
-                os.write(file.getBytes());
-            }
+    @Value("${application.laboratory.cloudfront}")
+    private String laboratoryCloudfront;
 
-            PutObjectRequest request = new PutObjectRequest(bucket, path, convFile);
-            request.setCannedAcl(CannedAccessControlList.PublicRead);
-            request.setMetadata(metadata);
-            amazonS3.putObject(request);
-            URL imageURL = amazonS3.getUrl(bucket, path);
-            return imageURL.toString();
-        } catch (Exception ex) {
-            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't put object file to AWS S3: " + ex.getMessage());
-        } finally {
-            try {
-                Files.delete(Paths.get(System.getProperty("java.io.tmpdir") + "/" + fileName));
-            } catch (Exception ex) {
-                log.error("Can't delete converted file: " + ex.getMessage());
-            }
+    @Override
+    public void uploadFile(CreateFileRequest request, String fileKey) {
+        String base64 = request.getBase64().split(",")[1];
+        byte[] decodedFile = Base64.getDecoder().decode(base64.getBytes(StandardCharsets.UTF_8));
+        InputStream is = new ByteArrayInputStream(decodedFile);
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(request.getMimeType());
+        metadata.setContentLength(request.getSize());
+
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, fileKey, is, metadata);
+        putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);
+        try {
+            amazonS3.putObject(putObjectRequest);
+        }catch (Exception ex){
+            throw new BusinessException("Can't push object to s3 bucket: "+ ex.getMessage());
         }
     }
 
@@ -141,5 +137,10 @@ public class S3BucketStorageServiceImpl implements S3BucketStorageService {
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
         return url.toString();
 
+    }
+
+    @Override
+    public String getPublicURL(String fileKey) {
+        return laboratoryCloudfront + fileKey;
     }
 }

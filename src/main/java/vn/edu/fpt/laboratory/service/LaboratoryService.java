@@ -2,9 +2,8 @@ package vn.edu.fpt.laboratory.service;
 
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
-import vn.edu.fpt.laboratory.dto.request.laboratory.CreateLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.GetLaboratoryRequest;
-import vn.edu.fpt.laboratory.dto.request.laboratory.UpdateLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.laboratory.*;
+import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 
 /**
@@ -24,7 +23,18 @@ public interface LaboratoryService {
 
     GetLaboratoryDetailResponse getLaboratoryDetail(String labId);
 
-    GetLaboratoryContainerResponse getLaboratory(GetLaboratoryRequest request);
+    PageableResponse<GetLaboratoryResponse> getLaboratory(GetLaboratoryRequest request);
 
-    PageableResponse<GetMemberResponse> getMemberInLab(String labId);
+    PageableResponse<GetLaboratoryResponse> getLaboratorySuggestion(GetLaboratoryRequest request);
+    PageableResponse<GetMemberResponse> getMemberInLab(String labId, GetMemberInLaboratoryRequest request);
+
+    void removeMemberFromLaboratory(String labId, String memberId);
+
+    ApplyLaboratoryResponse applyToLaboratory(String labId, ApplyLaboratoryRequest request);
+
+    GetApplicationDetailResponse getApplicationByApplicationId(String applicationId);
+
+    PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, GetApplicationRequest request);
+
+    void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request);
 }

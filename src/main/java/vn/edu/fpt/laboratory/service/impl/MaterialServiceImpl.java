@@ -7,24 +7,23 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
 import vn.edu.fpt.laboratory.constant.*;
+import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
+import vn.edu.fpt.laboratory.dto.request.laboratory.GetOrderRequest;
 import vn.edu.fpt.laboratory.dto.request.material.*;
 import vn.edu.fpt.laboratory.dto.response.image.GetImageResponse;
-import vn.edu.fpt.laboratory.dto.response.material.CreateMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialDetailResponse;
-import vn.edu.fpt.laboratory.dto.response.material.GetMaterialResponse;
-import vn.edu.fpt.laboratory.dto.response.material.OrderMaterialResponse;
+import vn.edu.fpt.laboratory.dto.response.material.*;
 import vn.edu.fpt.laboratory.entity.*;
 import vn.edu.fpt.laboratory.exception.BusinessException;
 import vn.edu.fpt.laboratory.repository.*;
 import vn.edu.fpt.laboratory.service.MaterialService;
 import vn.edu.fpt.laboratory.service.S3BucketStorageService;
 import vn.edu.fpt.laboratory.service.UserInfoService;
+import vn.edu.fpt.laboratory.utils.FileUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,31 +60,34 @@ public class MaterialServiceImpl implements MaterialService {
         if (currentMaterial.stream().anyMatch(v -> v.getMaterialName().equals(request.getMaterialName()))) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material name already exist");
         }
+        _Image image = null;
+        CreateFileRequest createFileRequest = request.getImages();
+        if (Objects.nonNull(createFileRequest)) {
+            String fileKey = UUID.randomUUID().toString();
+            s3BucketStorageService.uploadFile(createFileRequest, fileKey);
 
-        List<_Image> images = new ArrayList<>();
-        if (request.getImages() != null) {
-            for (MultipartFile file :
-                    request.getImages()) {
-                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
-                String path = String.format("%s/%s", laboratory.getLaboratoryName(), fileName);
-                String url = s3BucketStorageService.uploadFile(path, fileName, file);
-                images.add(_Image.builder()
-                        .imageName(fileName)
-                        .fullPath(path)
-                        .url(url)
-                        .build());
+            image = _Image.builder()
+                    .imageName(createFileRequest.getName())
+                    .size(FileUtils.getFileSize(createFileRequest.getSize()))
+                    .type(createFileRequest.getName().split("\\.")[1])
+                    .mimeType(createFileRequest.getMimeType())
+                    .length(createFileRequest.getSize())
+                    .fileKey(fileKey)
+                    .build();
+            try {
+                image = imageRepository.save(image);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save image to database: " + ex.getMessage());
             }
-        }
-
-        if (!images.isEmpty()) {
-            images = imageRepository.saveAll(images);
         }
 
         Material material = Material.builder()
                 .materialName(request.getMaterialName())
                 .description(request.getDescription())
                 .amount(request.getAmount())
-                .images(images)
+                .totalAmount(request.getAmount())
+                .note(request.getNote())
+                .images(image)
                 .build();
 
         try {
@@ -106,6 +108,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .materialId(material.getMaterialId())
                 .build();
     }
+
 
     @Override
     public void updateMaterial(String laboratoryId, String materialId, UpdateMaterialRequest request) {
@@ -134,6 +137,29 @@ public class MaterialServiceImpl implements MaterialService {
         }
         if (Objects.nonNull(request.getAmount()) && request.getAmount() > 0) {
             material.setAmount(request.getAmount());
+        }
+        if (Objects.nonNull(request.getImage())) {
+            String fileKey = UUID.randomUUID().toString();
+            s3BucketStorageService.uploadFile(request.getImage(), fileKey);
+            String[] splits = request.getImage().getName().split("\\.");
+            String type = splits[splits.length - 1];
+            _Image image = _Image.builder()
+                    .imageName(request.getImage().getName())
+                    .fileKey(fileKey)
+                    .size(FileUtils.getFileSize(request.getImage().getSize()))
+                    .type(type)
+                    .length(request.getImage().getSize())
+                    .mimeType(request.getImage().getMimeType())
+                    .build();
+            try {
+                image = imageRepository.save(image);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save image to database: " + ex.getMessage());
+            }
+            material.setImages(image);
+        }
+        if (Objects.nonNull(request.getNote())) {
+            material.setNote(request.getNote());
         }
 
         try {
@@ -173,7 +199,13 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public PageableResponse<GetMaterialResponse> getMaterial(GetMaterialRequest request) {
+        Laboratory laboratory = laboratoryRepository.findById(request.getLaboratoryId().toString())
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab Id not exist"));
+        List<ObjectId> materialIds = laboratory.getMaterials().stream().map(Material::getMaterialId).map(ObjectId::new).collect(Collectors.toList());
+
         Query query = new Query();
+
+        query.addCriteria(Criteria.where("_id").in(materialIds));
         if (Objects.nonNull(request.getMaterialId())) {
             query.addCriteria(Criteria.where("_id").is(request.getMaterialId()));
         }
@@ -208,33 +240,34 @@ public class MaterialServiceImpl implements MaterialService {
                 .description(material.getDescription())
                 .status(material.getStatus())
                 .amount(material.getAmount())
-                .createdBy(UserInfoResponse.builder()
-                        .accountId(material.getCreatedBy())
-                        .userInfo(userInfoService.getUserInfo(material.getCreatedBy()))
-                        .build())
-                .createdDate(material.getCreatedDate())
-                .lastModifiedBy(UserInfoResponse.builder()
-                        .accountId(material.getLastModifiedBy())
-                        .userInfo(userInfoService.getUserInfo(material.getLastModifiedBy()))
-                        .build())
-                .lastModifiedDate(material.getLastModifiedDate())
+                .image(s3BucketStorageService.getPublicURL(material.getImages().getFileKey()))
                 .build();
     }
 
     @Override
-    public GetMaterialDetailResponse getMaterialId(String materialId) {
+    public GetMaterialDetailResponse getMaterialById(String materialId) {
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
 
-        List<_Image> images = material.getImages();
+        _Image image = material.getImages();
+        List<BorrowTime> borrowTimes = material.getBorrowTime();
+        borrowTimes.removeIf(v -> v.getToDate().isBefore(LocalDateTime.now()));
+        material.setBorrowTime(borrowTimes);
+        try {
+            materialRepository.save(material);
+        }catch (Exception ex){
+            throw new BusinessException("Can't save material to database"+ ex.getMessage());
+        }
 
         return GetMaterialDetailResponse.builder()
                 .materialId(material.getMaterialId())
                 .materialName(material.getMaterialName())
                 .description(material.getDescription())
                 .status(material.getStatus())
-                .images(images.stream().map(this::convertImageToGetImageResponse).collect(Collectors.toList()))
+                .images(convertImageToGetImageResponse(image))
+                .note(material.getNote())
                 .amount(material.getAmount())
+                .borrowTime(material.getBorrowTime())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(material.getCreatedBy())
                         .userInfo(userInfoService.getUserInfo(material.getCreatedBy()))
@@ -252,30 +285,36 @@ public class MaterialServiceImpl implements MaterialService {
         return GetImageResponse.builder()
                 .imageId(image.getImageId())
                 .imageName(image.getImageName())
-                .url(image.getUrl())
+                .url(s3BucketStorageService.getPublicURL(image.getFileKey()))
                 .build();
     }
 
     @Override
     public OrderMaterialResponse orderMaterial(String laboratoryId, String materialId, OrderMaterialRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(laboratoryId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
-        if (material.getStatus().equals(MaterialStatusEnum.ORDERED.getStatus())) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
-        } else if (request.getAmount() > material.getAmount()) {
+
+        if (request.getAmount() > material.getAmount()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
-        } else if (request.getAmount() == material.getAmount()) {
-            material.setAmount(0);
-            material.setStatus(MaterialStatusEnum.ORDERED.getStatus());
-        } else {
-            material.setAmount(material.getAmount() - request.getAmount());
         }
 
+        List<BorrowTime> borrowTimeList = material.getBorrowTime();
+        if (!borrowTimeList.isEmpty()) {
+            for (BorrowTime b : borrowTimeList) {
+                if (b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderFrom()) ||
+                        b.getFromDate().isBefore(request.getOrderTo()) && b.getToDate().isAfter(request.getOrderTo()) ||
+                        b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderTo()) ||
+                        b.getFromDate().isAfter(request.getOrderFrom()) && b.getToDate().isBefore(request.getOrderTo()) ||
+                        b.getFromDate().isEqual(request.getOrderFrom()) && b.getToDate().isEqual(request.getOrderTo())) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material is in used in order time");
+                }
+            }
+        }
         OrderHistory orderHistory = OrderHistory.builder()
                 .reason(request.getReason())
-                .materialId(request.getMaterialId())
+                .materialId(materialId)
                 .amount(request.getAmount())
                 .orderFrom(request.getOrderFrom())
                 .orderTo(request.getOrderTo())
@@ -285,9 +324,9 @@ public class MaterialServiceImpl implements MaterialService {
         List<MemberInfo> managers = laboratory.getMembers().stream()
                 .filter(v -> v.getRole().equals(LaboratoryRoleEnum.MANAGER.getRole()) || v.getRole().equals(LaboratoryRoleEnum.OWNER.getRole()))
                 .collect(Collectors.toList());
-        if(!managers.isEmpty()){
+        if (!managers.isEmpty()) {
             Optional<AppConfig> orderMaterialTemplateId = appConfigRepository.findByConfigKey("ORDER_MATERIAL_TEMPLATE_ID");
-            if(orderMaterialTemplateId.isPresent()) {
+            if (orderMaterialTemplateId.isPresent()) {
                 for (MemberInfo member : managers) {
                     String memberEmail = userInfoService.getUserInfo(member.getAccountId()).getEmail();
                     SendEmailEvent sendEmailEvent = SendEmailEvent.builder()
@@ -299,8 +338,13 @@ public class MaterialServiceImpl implements MaterialService {
                             .build();
                     sendEmailProducer.sendMessage(sendEmailEvent);
                 }
+            }else{
+                log.info("Missing config key: ORDER_MATERIAL_TEMPLATE_ID");
             }
+        }else{
+            log.info("Laboratory don't has manager");
         }
+
         try {
             materialRepository.save(material);
         } catch (Exception ex) {
@@ -308,9 +352,17 @@ public class MaterialServiceImpl implements MaterialService {
         }
 
         try {
-            orderHistoryRepository.save(orderHistory);
+            orderHistory = orderHistoryRepository.save(orderHistory);
         } catch (Exception ex) {
             throw new BusinessException("Can't save order history to database: " + ex.getMessage());
+        }
+        List<OrderHistory> orders = laboratory.getOrders();
+        orders.add(orderHistory);
+        laboratory.setOrders(orders);
+        try {
+            laboratoryRepository.save(laboratory);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save laboratory to database: " + ex.getMessage());
         }
         return OrderMaterialResponse.builder()
                 .orderId(orderHistory.getOrderId())
@@ -320,90 +372,213 @@ public class MaterialServiceImpl implements MaterialService {
     @Override
     public void returnMaterial(String orderId) {
         OrderHistory orderHistory = orderHistoryRepository.findById(orderId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order history not exist"));
-        Material material = materialRepository.findById(orderHistory.getMaterialId())
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material not exist"));
-        if (material.getStatus().equals(MaterialStatusEnum.ORDERED.getStatus())) {
-            material.setStatus(MaterialStatusEnum.FREE.getStatus());
-        }
-        material.setAmount(material.getAmount() + orderHistory.getAmount());
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order history not exist"));
         orderHistory.setActuallyReturn(LocalDateTime.now());
         orderHistory.setStatus(OrderStatusEnum.COMPLETED.getStatus());
-        try {
-            materialRepository.save(material);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save material to database: " + ex.getMessage());
-        }
-
         try {
             orderHistoryRepository.save(orderHistory);
         } catch (Exception ex) {
             throw new BusinessException("Can't save order history to database: " + ex.getMessage());
         }
+
+        Material material = materialRepository.findById(orderHistory.getMaterialId())
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material Id not eixst"));
+        material.setAmount(material.getAmount() + orderHistory.getAmount());
+        material.setStatus(MaterialStatusEnum.FREE.getStatus());
+        try {
+            materialRepository.save(material);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save material to database: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    public PageableResponse<GetOrderedResponse> getOrderByLabId(String laboratoryId, GetOrderRequest request) {
+        Query query = new Query();
+        if (Objects.nonNull(request.getOrderId())) {
+            query.addCriteria(Criteria.where("_id").is(request.getOrderId()));
+        }
+        if (Objects.nonNull(request.getMaterialName())) {
+            query.addCriteria(Criteria.where("material_name").regex(request.getMaterialName()));
+        }
+        if (Objects.nonNull(request.getStatus())) {
+            query.addCriteria(Criteria.where("status").is(request.getStatus()));
+        }
+
+        Laboratory laboratory = laboratoryRepository.findById(laboratoryId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+        List<ObjectId> orderIds = laboratory.getOrders().stream().map(OrderHistory::getOrderId).map(ObjectId::new).collect(Collectors.toList());
+        query.addCriteria(Criteria.where("_id").in(orderIds));
+
+        BaseMongoRepository.addCriteriaWithAuditable(query, request);
+        Long totalElements = mongoTemplate.count(query, OrderHistory.class);
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+        List<OrderHistory> orders = mongoTemplate.find(query, OrderHistory.class);
+
+        List<GetOrderedResponse> orderedMaterialResponses = orders.stream().map(this::convertOrderHistoryToGetOrderedResponse).collect(Collectors.toList());
+        return new PageableResponse<> (request, totalElements, orderedMaterialResponses);
+    }
+
+    private GetOrderedResponse convertOrderHistoryToGetOrderedResponse(OrderHistory orderHistory) {
+        if (orderHistory == null){
+            return null;
+        } else {
+            Material material = materialRepository.findById(orderHistory.getMaterialId())
+                    .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID in order history not exist"));
+            UserInfoResponse userInfoResponse = UserInfoResponse.builder()
+                    .accountId(orderHistory.getCreatedBy())
+                    .userInfo(userInfoService.getUserInfo(orderHistory.getCreatedBy()))
+                    .build();
+            return GetOrderedResponse.builder()
+                    .orderId(orderHistory.getOrderId())
+                    .materialName(material.getMaterialName())
+                    .borrowBy(userInfoResponse)
+                    .amount(orderHistory.getAmount())
+                    .reason(orderHistory.getReason())
+                    .status(orderHistory.getStatus())
+                    .orderFromDate(orderHistory.getOrderFrom())
+                    .orderToDate(orderHistory.getOrderTo())
+                    .build();
+        }
+    }
+
+    @Override
+    public PageableResponse<GetOrderedMaterialResponse> getOrderedMaterialInLabByAccountId(String laboratoryId, String accountId) {
+        Laboratory laboratory = laboratoryRepository.findById(laboratoryId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+        List<OrderHistory> orderHistories = laboratory.getOrders().stream().filter(m->m.getCreatedBy().equals(accountId)).collect(Collectors.toList());
+        List<GetOrderedMaterialResponse> orderedMaterialResponses = orderHistories.stream().map(this::convertOrderHistoryToGetOrderedMaterialResponse).collect(Collectors.toList());
+        return new PageableResponse<> (orderedMaterialResponses);
+    }
+
+    private GetOrderedMaterialResponse convertOrderHistoryToGetOrderedMaterialResponse(OrderHistory orderHistory){
+        Material material = materialRepository.findById(orderHistory.getMaterialId())
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+        GetImageResponse imageResponse = GetImageResponse.builder()
+                .imageId(material.getImages().getImageId())
+                .imageName(material.getImages().getImageName())
+                .url(s3BucketStorageService.getPublicURL(material.getImages().getFileKey()))
+                .build();
+        return GetOrderedMaterialResponse.builder()
+                .orderId(orderHistory.getOrderId())
+                .materialId(orderHistory.getMaterialId())
+                .materialName(material.getMaterialName())
+                .images(imageResponse)
+                .status(orderHistory.getStatus())
+                .orderFromDate(orderHistory.getOrderFrom())
+                .orderToDate(orderHistory.getOrderTo())
+                .build();
+    }
+
+    @Override
+    public void responseOrder(String orderId, ResponseOrderRequest request) {
+        OrderHistory orderHistory = orderHistoryRepository.findById(orderId)
+                .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Order ID not exist"));
+        Material material = materialRepository.findById(orderHistory.getMaterialId())
+                .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+        if (Objects.nonNull(request.getStatus())) {
+            if (request.getStatus().equals(OrderStatusEnum.APPROVED.getStatus())) {
+                orderHistory.setStatus(OrderStatusEnum.APPROVED.getStatus());
+                BorrowTime borrowTime = BorrowTime.builder()
+                        .fromDate(orderHistory.getOrderFrom())
+                        .toDate(orderHistory.getOrderTo())
+                        .build();
+                List<BorrowTime> borrowTimeList = material.getBorrowTime();
+                borrowTimeList.add(borrowTime);
+                if(material.getAmount() < orderHistory.getAmount()){
+                    orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());
+                    try {
+                        orderHistoryRepository.save(orderHistory);
+                    }catch (Exception ex){
+                        throw new BusinessException("Can't update order history: "+ ex.getMessage());
+                    }
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material for this ticket");
+                }
+                if(material.getAmount() - orderHistory.getAmount() == 0){
+                    material.setStatus(MaterialStatusEnum.IN_USED.getStatus());
+                }
+                material.setAmount(material.getAmount() - orderHistory.getAmount());
+                material.setBorrowTime(borrowTimeList);
+            } else {
+                orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());
+            }
+        }
+        try {
+            orderHistoryRepository.save(orderHistory);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save order history to database: " + ex.getMessage());
+        }
+        try {
+            materialRepository.save(material);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't save material to database: " + ex.getMessage());
+        }
     }
 
     @Override
     public void removeImage(String materialId, String imageId) {
-        Material material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+//        Material material = materialRepository.findById(materialId)
+//                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+//
+//        if (material.getStatus().equals(MaterialStatusEnum.FREE.getStatus())) {
+//            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
+//        }
+//        _Image images = material.getImages();
+//        if(images.getImageId().equals(imageId)){
+//                throw new BusinessException("Can't get image exists");
+//        }
+//        material.setImages(images);
+//        try {
+//            materialRepository.save(material);
+//        } catch (Exception ex) {
+//            throw new BusinessException("Can't addImage material to database: " + ex.getMessage());
+//        }
+//
+//        imageRepository.delete(image);
+//        s3BucketStorageService.deleteFile(image.getFullPath());
 
-        if (material.getStatus().equals(MaterialStatusEnum.FREE.getStatus())) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material unavailable");
-        }
-        List<_Image> images = material.getImages();
-        _Image image = images.stream().filter(v -> v.getImageId().equals(imageId)).findAny()
-                .orElseThrow(() -> new BusinessException("Can't get image exists"));
-        images.remove(image);
-        material.setImages(images);
-        try {
-            materialRepository.save(material);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't addImage material to database: " + ex.getMessage());
-        }
-
-        imageRepository.delete(image);
-        s3BucketStorageService.deleteFile(image.getFullPath());
     }
 
     public void addImage(String materialId, AddImageRequest request) {
-        Material material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
-        Query query = new Query();
-        query.addCriteria(Criteria.where("materials.$id").is(new ObjectId(materialId)));
-        Laboratory laboratories;
-        try {
-            laboratories = mongoTemplate.findOne(query, Laboratory.class);
-            log.info("get laboratories: {}", laboratories);
-        }catch (Exception ex){
-            throw new BusinessException("Can't get laboratories");
-        }
-        if(laboratories == null){
-            throw new BusinessException("laboratories is null can't get Image");
-        }
-        List<_Image> images = new ArrayList<>();
-        if (request.getImages() != null) {
-            for (MultipartFile file :
-                    request.getImages()) {
-                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
-                String path = String.format("%s/%s", laboratories.getLaboratoryName(), fileName);
-                String url = s3BucketStorageService.uploadFile(path, fileName, file);
-                images.add(_Image.builder()
-                        .imageName(fileName)
-                        .fullPath(path)
-                        .url(url)
-                        .build());
-            }
-        }
-        if (!images.isEmpty()) {
-            images = imageRepository.saveAll(images);
-        }
-        List<_Image> currentImage = material.getImages();
-        currentImage.addAll(images);
-        material.setImages(currentImage);
-        try {
-            materialRepository.save(material);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
-        }
+//        Material material = materialRepository.findById(materialId)
+//                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
+//        Query query = new Query();
+//        query.addCriteria(Criteria.where("materials.$id").is(new ObjectId(materialId)));
+//        Laboratory laboratories;
+//        try {
+//            laboratories = mongoTemplate.findOne(query, Laboratory.class);
+//            log.info("get laboratories: {}", laboratories);
+//        }catch (Exception ex){
+//            throw new BusinessException("Can't get laboratories");
+//        }
+//        if(laboratories == null){
+//            throw new BusinessException("laboratories is null can't get Image");
+//        }
+//        List<_Image> images = new ArrayList<>();
+//        if (request.getImages() != null) {
+//            for (CreateFileRequest file :
+//                    request.getImages()) {
+//                String fileName = String.format("%s_%s",UUID.randomUUID(), file.getOriginalFilename());
+//                String path = String.format("%s/%s", laboratories.getLaboratoryName(), fileName);
+//                String url = s3BucketStorageService.uploadFile(path, fileName, file);
+//                images.add(_Image.builder()
+//                        .imageName(fileName)
+//                        .fullPath(path)
+//                        .url(url)
+//                        .build());
+//            }
+//        }
+//        if (!images.isEmpty()) {
+//            images = imageRepository.saveAll(images);
+//        }
+//        List<_Image> currentImage = material.getImages();
+//        currentImage.addAll(images);
+//        material.setImages(currentImage);
+//        try {
+//            materialRepository.save(material);
+//        } catch (Exception ex) {
+//            throw new BusinessException("Can't add Image to material in database: " + ex.getMessage());
+//        }
     }
 }

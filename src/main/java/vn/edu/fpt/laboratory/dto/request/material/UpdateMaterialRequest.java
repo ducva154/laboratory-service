@@ -3,8 +3,7 @@ package vn.edu.fpt.laboratory.dto.request.material;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.laboratory.dto.common.CreateFileRequest;
 
 import java.io.Serializable;
 
@@ -25,4 +24,6 @@ public class UpdateMaterialRequest implements Serializable {
     private String description;
     private String status;
     private Integer amount;
+    private CreateFileRequest image;
+    private String note;
 }

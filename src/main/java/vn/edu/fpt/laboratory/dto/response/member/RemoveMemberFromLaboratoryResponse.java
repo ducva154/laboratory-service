@@ -3,7 +3,6 @@ package vn.edu.fpt.laboratory.dto.response.member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -18,6 +17,5 @@ import java.io.Serializable;
 @Data
 @Builder
 public class RemoveMemberFromLaboratoryResponse implements Serializable {
-
     private static final long serialVersionUID = 6770339487345565338L;
 }

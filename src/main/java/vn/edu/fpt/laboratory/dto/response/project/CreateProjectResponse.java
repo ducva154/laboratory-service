@@ -19,7 +19,6 @@ import java.io.Serializable;
 @Data
 @Builder
 public class CreateProjectResponse implements Serializable {
-
     private static final long serialVersionUID = 1881254846052192199L;
     private String projectId;
 }

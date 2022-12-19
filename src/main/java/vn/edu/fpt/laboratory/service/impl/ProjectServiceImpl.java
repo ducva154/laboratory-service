@@ -5,17 +5,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.laboratory.config.kafka.producer.GenerateProjectAppProducer;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ProjectRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.event.GenerateProjectAppEvent;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
+import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -53,6 +60,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final MemberInfoRepository memberInfoRepository;
     private final UserInfoService userInfoService;
     private final MongoTemplate mongoTemplate;
+    private final GenerateProjectAppProducer generateProjectAppProducer;
 
     @Override
     @Transactional
@@ -60,7 +68,7 @@ public class ProjectServiceImpl implements ProjectService {
         AuditorUtils auditorUtils = new AuditorUtils();
 
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when create project: "+ labId));
 
         Optional<Project> projectInDb = projectRepository.findByProjectName(request.getProjectName());
         if (projectInDb.isPresent()) {
@@ -93,7 +101,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(request.getDescription())
                 .startDate(request.getStartDate())
                 .toDate(request.getToDate())
-                .members(List.of(memberInfoInLab))
+                .ownerBy(memberInfo)
+                .members(List.of(memberInfo))
                 .build();
 
         try {
@@ -114,6 +123,12 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException("Can't update laboratory in database: " + ex.getMessage());
         }
 
+        generateProjectAppProducer.sendMessage(GenerateProjectAppEvent.builder()
+                        .projectId(project.getProjectId())
+                        .accountId(project.getCreatedBy())
+                        .projectName(project.getProjectName())
+                .build());
+
         return CreateProjectResponse.builder()
                 .projectId(project.getProjectId())
                 .build();
@@ -122,15 +137,24 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void updateProject(String labId, String projectId, _UpdateProjectRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when update project: "+ labId));
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist when update project: "+ projectId));
         List<Project> projects = laboratory.getProjects();
 
         if (projects.stream().noneMatch(m -> m.getProjectId().equals(projectId))) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory not contain this project");
         }
 
+        String accountId = userInfoService.getAccountId();
+
+        MemberInfo memberInfo = project.getMembers().stream()
+                .filter(v -> v.getAccountId().equals(accountId))
+                .findAny().orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account Id not in project"));
+
+        if(!memberInfo.getRole().equals("OWNER") && !memberInfo.getRole().equals("MANAGER")){
+            throw new BusinessException("You don't have permission to update role");
+        }
         if (Objects.nonNull(request.getProjectName())) {
             if (projects.stream().anyMatch(m -> m.getProjectName().equals(request.getProjectName()))) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
@@ -157,11 +181,26 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(String labId, String projectId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when delete project: "+ labId));
+
         List<Project> projects = laboratory.getProjects();
-        projects.remove(project);
+        String accountId = userInfoService.getAccountId();
+        Project project = projects.stream()
+                .filter(v -> v.getProjectId().equals(projectId))
+                .findAny()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project Id not exist"));
+        MemberInfo memberInfo = project.getMembers().stream()
+                .filter(v -> v.getAccountId().equals(accountId))
+                .findAny()
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Account Id not in project member"));
+        if(!memberInfo.getRole().equals("OWNER")){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "You don't have permission to delete project");
+        }
+        if(projects.removeIf(v -> v.getProjectId().equals(projectId))){
+            log.info("Delete success");
+        }else{
+            log.error("Can't delete project");
+        }
         laboratory.setProjects(projects);
         try {
             laboratoryRepository.save(laboratory);
@@ -169,7 +208,8 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BusinessException("Can't update laboratory in database");
         }
         try {
-            projectRepository.delete(project);
+            projectRepository.deleteById(projectId);
+            log.info("Delete project success: {}", project);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete project in database");
         }
@@ -208,6 +248,34 @@ public class ProjectServiceImpl implements ProjectService {
         return new PageableResponse<>(request, totalElements, getProjectResponses);
     }
 
+    @Override
+    public PageableResponse<GetProjectResponse> getProjectByLaboratoryId(String labId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab ID not exist"));
+        List<GetProjectResponse> getProjectResponses = laboratory.getProjects().stream().map(this::convertProjectToGetProjectResponse).collect(Collectors.toList());
+        return new PageableResponse<>(getProjectResponses);
+    }
+
+    @Override
+    public PageableResponse<GetMemberResponse> getMemberInProject(String projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist when get member in project: "+ projectId));
+        List<MemberInfo> memberInfos = project.getMembers();
+        List<GetMemberResponse> getMemberResponses = memberInfos.stream().map(this::convertMemberToGetMemberInfoResponse).collect(Collectors.toList());
+        return new PageableResponse<>(getMemberResponses);
+    }
+
+    private GetMemberResponse convertMemberToGetMemberInfoResponse(MemberInfo memberInfo) {
+        return GetMemberResponse.builder()
+                .memberId(memberInfo.getMemberId())
+                .role(memberInfo.getRole())
+                .userInfo(UserInfoResponse.builder()
+                        .accountId(memberInfo.getAccountId())
+                        .userInfo(userInfoService.getUserInfo(memberInfo.getAccountId()))
+                        .build())
+                .build();
+    }
+
     private GetProjectResponse convertProjectToGetProjectResponse(Project project) {
         return GetProjectResponse.builder()
                 .projectId(project.getProjectId())
@@ -220,12 +288,17 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public GetProjectDetailResponse getProjectDetailByProjectId(String projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist"));
-
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project ID not exist when get project detail: "+ projectId));
+        String accountId = userInfoService.getAccountId();
+        MemberInfo memberInfo = project.getMembers().stream()
+                .filter(v -> v.getAccountId().equals(accountId))
+                .findFirst()
+                .orElse(null);
         return GetProjectDetailResponse.builder()
                 .projectId(project.getProjectId())
                 .projectName(project.getProjectName())
                 .description(project.getDescription())
+                .memberInfo(new MemberInfoResponse(memberInfo))
                 .members(project.getMembers().stream()
                         .map(this::convertMemberToMemberInfoResponse)
                         .collect(Collectors.toList()))
@@ -241,6 +314,32 @@ public class ProjectServiceImpl implements ProjectService {
                 .lastModifiedDate(project.getLastModifiedDate())
                 .build();
     }
+
+    @Override
+    public void removeMemberFromProject(String projectId, String memberId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
+
+        List<MemberInfo> memberInfos = project.getMembers();
+        Optional<MemberInfo> memberInProject = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
+
+        if (memberInProject.isEmpty()) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromProject");
+        }
+
+        if (memberInfos.remove(memberInProject.get())) {
+            project.setMembers(memberInfos);
+            try {
+                projectRepository.save(project);
+                log.info("Remove member from Project success");
+            } catch (Exception ex) {
+                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove Project");
+            }
+        } else {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from Project");
+        }
+    }
+
 
     private MemberInfoResponse convertMemberToMemberInfoResponse(MemberInfo memberInfo) {
         return MemberInfoResponse.builder()

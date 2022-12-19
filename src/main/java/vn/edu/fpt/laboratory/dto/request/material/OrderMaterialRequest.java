@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 public class OrderMaterialRequest implements Serializable {
 
     private static final long serialVersionUID = -7674328278013001218L;
-    private String materialId;
     private Integer amount;
     private String reason;
     private LocalDateTime orderFrom;

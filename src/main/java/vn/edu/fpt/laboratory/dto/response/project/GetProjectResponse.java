@@ -21,7 +21,6 @@ import java.io.Serializable;
 @Builder
 @JsonPropertyOrder({"projectId", "projectName", "description", "members"})
 public class GetProjectResponse implements Serializable {
-
     private static final long serialVersionUID = 5136630163476760601L;
     private String projectId;
     private String projectName;

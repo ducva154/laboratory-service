@@ -30,8 +30,6 @@ public class GetLaboratoryRequest extends PageableRequest {
     private String laboratoryName;
     private String description;
     private String major;
-    private Integer suggestionSize;
-    private Integer suggestionPage;
 
     public ObjectId getLaboratoryId() {
         return RequestDataUtils.convertObjectId(laboratoryId);
@@ -55,13 +53,5 @@ public class GetLaboratoryRequest extends PageableRequest {
 
     public String getMajor() {
         return RequestDataUtils.convertSearchableData(major);
-    }
-
-    public Integer getSuggestionPage() {
-        return Objects.nonNull(page) && page > 0 ? page : AppConstant.PAGE_DEFAULT;
-    }
-
-    public Integer getSuggestionSize() {
-        return Objects.nonNull(size) && size > 0 ? size : AppConstant.SIZE_DEFAULT;
     }
 }

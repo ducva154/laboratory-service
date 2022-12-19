@@ -1,5 +1,6 @@
 package vn.edu.fpt.laboratory.dto.response.laboratory;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,10 +17,11 @@ import java.io.Serializable;
  * @contact : 0834481768 - hoang.harley.work@gmail.com
  **/
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 public class GetMemberResponse implements Serializable {
-
     private static final long serialVersionUID = -1205470045971314176L;
     private String memberId;
     private String role;
