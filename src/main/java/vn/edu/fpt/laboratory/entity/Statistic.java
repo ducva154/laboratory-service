@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
+import vn.edu.fpt.laboratory.entity.common.Auditor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @SuperBuilder
-public class Statistic implements Serializable {
+public class Statistic extends Auditor {
 
     private static final long serialVersionUID = -8536987811267100477L;
     @Id
@@ -39,6 +40,4 @@ public class Statistic implements Serializable {
     private Integer numOfMaterialBorrowed;
     @Field(name = "num_of_member_borrowed")
     private Integer numOfMemberBorrowed;
-    @Field(name = "date")
-    private LocalDate date;
 }

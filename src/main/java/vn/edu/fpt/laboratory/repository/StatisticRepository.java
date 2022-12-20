@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface StatisticRepository extends MongoRepository<Statistic, String> {
-    Statistic findByDate(LocalDate date);
+    Statistic findTopByOrderByLastModifiedDateDesc();
 }

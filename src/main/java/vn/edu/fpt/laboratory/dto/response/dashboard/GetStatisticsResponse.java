@@ -16,12 +16,12 @@ public class GetStatisticsResponse implements Serializable {
     private static final long serialVersionUID = 2338342277772713621L;
 
     private Integer numOfLab;
-    private Integer avgProjectInLab;
-    private Integer avgMemberInLab;
+    private Double avgProjectInLab;
+    private Double avgMemberInLab;
 
     private Integer numOfProject;
-    private Integer avgMemberInProject;
-    private Long avgTimeOfProject;
+    private Double avgMemberInProject;
+    private Double avgTimeOfProject;
 
     private Integer numOfMaterial;
     private Integer numOfItemBorrowed;

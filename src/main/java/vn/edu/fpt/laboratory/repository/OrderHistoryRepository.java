@@ -22,7 +22,7 @@ public interface OrderHistoryRepository extends MongoRepository<OrderHistory, St
 
     @Aggregation(pipeline = {
             "{'$match':  {'status':  'COMPLETED'}}",
-            "{'$group':{'_id': {'created_by': '$created_by'}} }",
+            "{'$group':{'_id': {'created_by': '$created_by'}} }"
     })
-    List<OrderHistory> countCreateByInOrderHistoriesByStatusAndActuallyReturnBetween(LocalDateTime from, LocalDateTime to);
+    List<OrderHistory> countCreateByInOrderHistoriesByActuallyReturnBetween(LocalDateTime from, LocalDateTime to);
 }
