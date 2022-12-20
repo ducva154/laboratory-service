@@ -299,6 +299,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .projectName(project.getProjectName())
                 .description(project.getDescription())
                 .memberInfo(new MemberInfoResponse(memberInfo))
+                .ownerBy(new MemberInfoResponse(project.getOwnerBy()))
                 .members(project.getMembers().stream()
                         .map(this::convertMemberToMemberInfoResponse)
                         .collect(Collectors.toList()))

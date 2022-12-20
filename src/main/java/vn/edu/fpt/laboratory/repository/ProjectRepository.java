@@ -4,6 +4,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.laboratory.entity.Project;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,4 +19,8 @@ import java.util.Optional;
 public interface ProjectRepository extends MongoRepository<Project, String> {
 
     Optional<Project> findByProjectName(String projectName);
+
+    Integer countByCreatedDateBetween(LocalDateTime from, LocalDateTime to);
+
+    List<Project> findByCreatedDateBetween(LocalDateTime from, LocalDateTime to);
 }

@@ -79,6 +79,8 @@ public class MaterialServiceImpl implements MaterialService {
             } catch (Exception ex) {
                 throw new BusinessException("Can't save image to database: " + ex.getMessage());
             }
+        } else {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Image is invalid");
         }
 
         Material material = Material.builder()

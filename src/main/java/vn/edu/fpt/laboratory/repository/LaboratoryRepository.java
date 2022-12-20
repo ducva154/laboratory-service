@@ -6,7 +6,10 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.laboratory.entity.Laboratory;
 import vn.edu.fpt.laboratory.entity.MemberInfo;
+import vn.edu.fpt.laboratory.entity.Statistic;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,4 +25,5 @@ public interface LaboratoryRepository extends MongoRepository<Laboratory, String
 
     Optional<Laboratory> findByLaboratoryName(String labName);
 
+    Integer countByCreatedDateBetween(LocalDateTime from, LocalDateTime to);
 }
