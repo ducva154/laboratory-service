@@ -33,5 +33,4 @@ public interface ProjectService {
     GetProjectDetailResponse getProjectDetailByProjectId(String projectId);
 
     void removeMemberFromProject(String projectId, String memberId);
-
 }

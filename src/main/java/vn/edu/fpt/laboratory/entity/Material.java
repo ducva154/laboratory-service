@@ -49,6 +49,9 @@ public class Material extends Auditor {
     @Field(name = "images")
     @DBRef(lazy = true)
     private _Image images;
+    @Field(name = "is_delete")
+    @Builder.Default
+    private boolean isDelete = false;
     @Field(name = "borrow_time")
     @Builder.Default
     private List<BorrowTime> borrowTime = new ArrayList<>();
