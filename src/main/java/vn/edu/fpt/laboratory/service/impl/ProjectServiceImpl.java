@@ -70,7 +70,7 @@ public class ProjectServiceImpl implements ProjectService {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist when create project: "+ labId));
 
-        Optional<Project> projectInDb = projectRepository.findByProjectName(request.getProjectName());
+        Optional<Project> projectInDb = laboratory.getProjects().stream().filter(v->v.getProjectName().equals(request.getProjectName())).findFirst();
         if (projectInDb.isPresent()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name already exist");
         }
