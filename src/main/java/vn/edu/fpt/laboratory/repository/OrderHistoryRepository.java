@@ -16,4 +16,6 @@ import java.util.List;
 @Repository
 public interface OrderHistoryRepository extends MongoRepository<OrderHistory, String> {
     List<OrderHistory> getOrderHistoriesByMaterialIdAndStatus(String materialId, String status);
+
+    List<OrderHistory> findByMaterialIdAndStatus(String materialId, String status);
 }

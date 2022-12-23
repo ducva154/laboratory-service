@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author : Hoang Lam
@@ -21,5 +22,5 @@ import java.io.Serializable;
 public class AddMemberToProjectRequest implements Serializable {
 
     private static final long serialVersionUID = -6984445874187129588L;
-    private String memberId;
+    private List<String> memberIds;
 }

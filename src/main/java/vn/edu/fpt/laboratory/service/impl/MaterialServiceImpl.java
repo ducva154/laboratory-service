@@ -122,11 +122,13 @@ public class MaterialServiceImpl implements MaterialService {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory not contain this material");
         }
 
-        if (Objects.nonNull(request.getMaterialName())) {
-            if (materials.stream().anyMatch(m -> m.getMaterialName().equals(request.getMaterialName()))) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material name is already exist");
-            } else {
-                material.setMaterialName(request.getMaterialName());
+        if (!material.getMaterialName().equals(request.getMaterialName())){
+            if (Objects.nonNull(request.getMaterialName())) {
+                if (materials.stream().anyMatch(m -> m.getMaterialName().equals(request.getMaterialName()))) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material name is already exist");
+                } else {
+                    material.setMaterialName(request.getMaterialName());
+                }
             }
         }
         if (Objects.nonNull(request.getDescription())) {
@@ -180,7 +182,6 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
 
         materialInLab.remove(material);
-
         laboratory.setMaterials(materialInLab);
 
         try {
@@ -188,13 +189,23 @@ public class MaterialServiceImpl implements MaterialService {
         } catch (Exception ex) {
             throw new BusinessException("Can't update laboratory in database");
         }
+        material.setDelete(true);
 
         try {
-            materialRepository.delete(material);
+            materialRepository.save(material);
         } catch (Exception ex) {
             throw new BusinessException("Can't delete material in database");
         }
 
+        List<OrderHistory> orderHistories = orderHistoryRepository.findByMaterialIdAndStatus(materialId, OrderStatusEnum.WAITING_FOR_APPROVAL.getStatus());
+        for (OrderHistory o : orderHistories) {
+            o.setStatus(OrderStatusEnum.REJECTED.getStatus());
+        }
+        try {
+            orderHistoryRepository.saveAll(orderHistories);
+        } catch (Exception ex) {
+            throw new BusinessException("Can't update order history in database");
+        }
     }
 
     @Override
@@ -219,7 +230,6 @@ public class MaterialServiceImpl implements MaterialService {
         if (Objects.nonNull(request.getDescription())) {
             query.addCriteria(Criteria.where("description").regex(request.getDescription()));
         }
-
         BaseMongoRepository.addCriteriaWithAuditable(query, request);
 
         Long totalElements = mongoTemplate.count(query, Material.class);
