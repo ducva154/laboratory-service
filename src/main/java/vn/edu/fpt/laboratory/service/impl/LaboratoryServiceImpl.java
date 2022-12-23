@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
@@ -13,16 +14,17 @@ import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.cache.UserInfo;
-import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
-import vn.edu.fpt.laboratory.dto.common.PageableResponse;
-import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
+import vn.edu.fpt.laboratory.dto.common.*;
 import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
 import vn.edu.fpt.laboratory.dto.request.laboratory.*;
+import vn.edu.fpt.laboratory.dto.request.member.GetAccountNotInLabRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInLabResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
 import vn.edu.fpt.laboratory.entity.*;
 import vn.edu.fpt.laboratory.exception.BusinessException;
 import vn.edu.fpt.laboratory.repository.*;
+import vn.edu.fpt.laboratory.service.AccountFeignService;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
 import vn.edu.fpt.laboratory.service.ProjectService;
 import vn.edu.fpt.laboratory.service.UserInfoService;
@@ -53,6 +55,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     private final ApplicationRepository applicationRepository;
     private final AppConfigRepository appConfigRepository;
     private final SendEmailProducer sendEmailProducer;
+    private final AccountFeignService accountFeignService;
 
     @Override
     @Transactional(rollbackFor = BusinessException.class)
@@ -523,6 +526,30 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         } catch (Exception ex) {
             throw new BusinessException("Can't save laboratory after add member in database");
         }
+    }
+
+    @Override
+    public PageableResponse<GetMemberNotInLabResponse> getMemberNotInLab(String labId, String username, Integer page, Integer size) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab Id not exist"));
+        List<MemberInfo> memberInfos = laboratory.getMembers();
+        List<String> accountIds = memberInfos.stream().map(MemberInfo::getAccountId).collect(Collectors.toList());
+        GetAccountNotInLabRequest request = GetAccountNotInLabRequest.builder()
+                .username(username)
+                .accountIds(accountIds)
+                .page(page)
+                .size(size)
+                .sortBy(List.of(new SortableRequest("created_date", "DESC")))
+                .build();
+
+        ResponseEntity<GeneralResponse<PageableResponse<GetMemberNotInLabResponse>>> response = accountFeignService.getAccountNotInLab(request);
+        if(Objects.nonNull(response.getBody())){
+            final GeneralResponse<PageableResponse<GetMemberNotInLabResponse>> generalResponse = response.getBody();
+            if(Objects.nonNull(generalResponse.getData())){
+                return generalResponse.getData();
+            }
+        }
+        throw new BusinessException("Can't get account in account service");
     }
 
     private GetApplicationResponse convertApplicationToGetApplicationResponse(Application application) {

@@ -16,6 +16,7 @@ import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.material.*;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInLabResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 
 /**
@@ -182,4 +183,10 @@ public interface LaboratoryController {
             @PathVariable(name = "lab-id") String labId,
             @PathVariable(name = "account-id") String accountId);
 
+    @GetMapping("/{lab-id}/members/not-in")
+    ResponseEntity<GeneralResponse<PageableResponse<GetMemberNotInLabResponse>>> getMemberNotInLab(@PathVariable(name = "lab-id") String labId,
+                                                                                                   @RequestParam(name = "username", required = false) String username,
+                                                                                                   @RequestParam(name = "page", required = false) Integer page,
+                                                                                                   @RequestParam(name = "size", required = false) Integer size
+                                                                                                   );
 }

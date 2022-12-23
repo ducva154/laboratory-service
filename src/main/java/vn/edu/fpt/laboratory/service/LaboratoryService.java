@@ -5,6 +5,7 @@ import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.*;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInLabResponse;
 
 /**
  * @author : Hoang Lam
@@ -37,4 +38,6 @@ public interface LaboratoryService {
     PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, GetApplicationRequest request);
 
     void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request);
+
+    PageableResponse<GetMemberNotInLabResponse> getMemberNotInLab(String labId, String username, Integer page, Integer size);
 }
