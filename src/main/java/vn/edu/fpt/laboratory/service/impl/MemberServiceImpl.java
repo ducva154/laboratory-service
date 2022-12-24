@@ -2,6 +2,7 @@ package vn.edu.fpt.laboratory.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.laboratory.config.kafka.producer.ModifyMembersToWorkspaceProducer;
@@ -48,51 +49,54 @@ public class MemberServiceImpl implements MemberInfoService {
     public void addMemberToProject(String projectId, AddMemberToProjectRequest request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
-        Optional<MemberInfo> memberInProject = project.getMembers().stream().filter(v -> v.getMemberId().equals(request.getMemberId()))
-                .findAny();
-        if (memberInProject.isPresent()) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member already contain this project");
-        }
-        MemberInfo memberInfo = memberInfoRepository.findById(request.getMemberId())
-                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found"));
         List<MemberInfo> memberInfos = project.getMembers();
-        memberInfos.add(memberInfo);
+        for (String s : request.getMemberIds()) {
+            Optional<MemberInfo> memberInProject = project.getMembers().stream().filter(v -> v.getMemberId().equals(s))
+                    .findAny();
+            if (memberInProject.isPresent()) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member already contain this project");
+            }
+            MemberInfo memberInfo = memberInfoRepository.findById(s)
+                    .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found"));
+            memberInfos.add(memberInfo);
+            modifyMembersToWorkspaceProducer.sendMessage(ModifyMembersToWorkspaceEvent.builder()
+                    .workspaceId(projectId)
+                    .accountId(memberInfo.getAccountId())
+                    .type("ADD")
+                    .build());
+        }
         project.setMembers(memberInfos);
-
         try {
             projectRepository.save(project);
             log.info("Add member to project success");
         } catch (Exception ex) {
             throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can not add member to project in database: " + ex.getMessage());
         }
-
-        modifyMembersToWorkspaceProducer.sendMessage(ModifyMembersToWorkspaceEvent.builder()
-                .workspaceId(projectId)
-                .accountId(memberInfo.getAccountId())
-                .type("ADD")
-                .build());
     }
 
     @Override
     public void addMemberToLaboratory(String labId, AddMemberToLaboratoryRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "laboratory id not found"));
-        Optional<MemberInfo> memberInProject = laboratory.getMembers().stream().filter(v -> v.getMemberId().equals(request.getAccountId()))
-                .findAny();
-        if (memberInProject.isPresent()) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member already contain this project");
-        }
-        MemberInfo memberInfo = MemberInfo.builder()
-                .accountId(request.getAccountId())
-                .role(LaboratoryRoleEnum.MEMBER.getRole())
-                .build();
-        try {
-            memberInfo = memberInfoRepository.save(memberInfo);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save member info to database: " + ex.getMessage());
-        }
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        memberInfos.add(memberInfo);
+        for (String s : request.getAccountIds()) {
+            Optional<MemberInfo> memberInProject = laboratory.getMembers().stream().filter(v -> v.getMemberId().equals(s))
+                    .findAny();
+            if (memberInProject.isPresent()) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member already contain this project");
+            }
+            MemberInfo memberInfo = MemberInfo.builder()
+                    .accountId(s)
+                    .role(LaboratoryRoleEnum.MEMBER.getRole())
+                    .build();
+            try {
+                memberInfo = memberInfoRepository.save(memberInfo);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save member info to database: " + ex.getMessage());
+            }
+            memberInfos.add(memberInfo);
+        }
+
         laboratory.setMembers(memberInfos);
         try {
             laboratoryRepository.save(laboratory);
