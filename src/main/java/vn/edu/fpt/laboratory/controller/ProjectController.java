@@ -44,8 +44,8 @@ public interface ProjectController {
 
     );
 
-    @GetMapping("/{lab-id}/projects")
-    ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProjectByLabId(@PathVariable(name = "lab-id") String labId);
+    @GetMapping("/{lab-id}/{member-id}/projects")
+    ResponseEntity<GeneralResponse<PageableResponse<GetProjectResponse>>> getProjectByLabId(@PathVariable(name = "lab-id") String labId, @PathVariable(name = "member-id") String memberId);
 
     @GetMapping("/{project-id}")
     ResponseEntity<GeneralResponse<GetProjectDetailResponse>> getProjectDetail(@PathVariable(name = "project-id") String projectId);

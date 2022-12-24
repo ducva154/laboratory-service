@@ -254,10 +254,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public PageableResponse<GetProjectResponse> getProjectByLaboratoryId(String labId) {
+    public PageableResponse<GetProjectResponse> getProjectByLaboratoryId(String labId, String memberId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab ID not exist"));
-        List<GetProjectResponse> getProjectResponses = laboratory.getProjects().stream().map(this::convertProjectToGetProjectResponse).collect(Collectors.toList());
+        MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member ID not exist"));
+        List<Project> projects = laboratory.getProjects();
+        String accountId = memberInfo.getAccountId();
+        List<Project> listProjectContainMember = projects.stream().filter(v -> v.getMembers().stream().anyMatch(s -> s.getAccountId().equals(accountId))).collect(Collectors.toList());
+        List<GetProjectResponse> getProjectResponses = listProjectContainMember.stream().map(this::convertProjectToGetProjectResponse).collect(Collectors.toList());
+
         return new PageableResponse<>(getProjectResponses);
     }
 
