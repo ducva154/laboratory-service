@@ -15,10 +15,13 @@ import vn.edu.fpt.laboratory.dto.request.material.GetMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.OrderMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.material.UpdateMaterialRequest;
 import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
+import vn.edu.fpt.laboratory.dto.request.member.GetMemberNotInProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.material.*;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInLabResponse;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.factory.ResponseFactory;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
@@ -376,5 +379,22 @@ public class LaboratoryControllerImpl implements LaboratoryController {
             String accountId) {
 
         return responseFactory.response(materialService.getOrderedMaterialInLabByAccountId(labId, accountId));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMemberNotInLabResponse>>> getMemberNotInLab(String labId, String username, Integer page, Integer size) {
+        return responseFactory.response(laboratoryService.getMemberNotInLab(labId, username, page, size));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetMemberNotInProjectResponse>>> getMemberNotInProject(String labId, String projectId, Integer page, Integer size) {
+        GetMemberNotInProjectRequest request = GetMemberNotInProjectRequest.builder()
+                .labId(labId)
+                .projectId(projectId)
+                .page(page)
+                .size(size)
+                .sortBy(List.of(new SortableRequest("created_date", "DESC")))
+                .build();
+        return responseFactory.response(projectService.getMemberNotInProject(request));
     }
 }

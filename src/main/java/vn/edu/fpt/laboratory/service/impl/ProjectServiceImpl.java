@@ -2,6 +2,7 @@ package vn.edu.fpt.laboratory.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -15,14 +16,18 @@ import vn.edu.fpt.laboratory.config.kafka.producer.GenerateProjectAppProducer;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ProjectRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.dto.cache.UserInfo;
+import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.common.UserInfoResponse;
 import vn.edu.fpt.laboratory.dto.event.GenerateProjectAppEvent;
+import vn.edu.fpt.laboratory.dto.request.member.GetMemberNotInProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -341,6 +346,43 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    @Override
+    public PageableResponse<GetMemberNotInProjectResponse> getMemberNotInProject(GetMemberNotInProjectRequest request) {
+        Laboratory laboratory = laboratoryRepository.findById(request.getLabId())
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab Id not exist in get member not in project: "+ request.getLabId()));
+        Project project = projectRepository.findById(request.getProjectId())
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project Id not exist in get member not in project: "+ request.getProjectId()));
+        List<MemberInfo> memberInfoInLab = laboratory.getMembers();
+        List<MemberInfo> memberInfoInProject = project.getMembers();
+        List<String> memberIdInProject = memberInfoInProject.stream().map(MemberInfo::getMemberId).collect(Collectors.toList());
+        List<ObjectId> memberIbInLabNotInProject = memberInfoInLab.stream()
+                .map(MemberInfo::getMemberId)
+                .filter(v -> !memberIdInProject.contains(v))
+                .map(ObjectId::new)
+                .collect(Collectors.toList());
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").in(memberIbInLabNotInProject));
+        BaseMongoRepository.addCriteriaWithSorted(query, request);
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+        List<MemberInfo> memberInfoInLabNotInProject = mongoTemplate.find(query, MemberInfo.class);
+        List<GetMemberNotInProjectResponse> getMemberNotInProjectResponses = memberInfoInLabNotInProject.stream().map(this::convertMemberNotInProject).filter(Objects::nonNull).collect(Collectors.toList());
+        return new PageableResponse<>(request, (long)memberIbInLabNotInProject.size(), getMemberNotInProjectResponses);
+    }
+
+    private GetMemberNotInProjectResponse convertMemberNotInProject(MemberInfo memberInfo){
+        UserInfo userInfo = userInfoService.getUserInfo(memberInfo.getAccountId());
+        if(Objects.nonNull(userInfo)){
+            return GetMemberNotInProjectResponse.builder()
+                    .memberId(memberInfo.getMemberId())
+                    .username(userInfo.getUsername())
+                    .email(userInfo.getEmail())
+                    .fullName(userInfo.getFullName())
+                    .build();
+        }else{
+            return null;
+        }
+
+    }
 
     private MemberInfoResponse convertMemberToMemberInfoResponse(MemberInfo memberInfo) {
         return MemberInfoResponse.builder()

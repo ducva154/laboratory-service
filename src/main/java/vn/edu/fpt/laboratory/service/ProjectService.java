@@ -1,10 +1,14 @@
 package vn.edu.fpt.laboratory.service;
 
+import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
+import vn.edu.fpt.laboratory.dto.request.member.GetMemberNotInProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._CreateProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._GetProjectRequest;
 import vn.edu.fpt.laboratory.dto.request.project._UpdateProjectRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.GetMemberResponse;
+import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.CreateProjectResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectDetailResponse;
 import vn.edu.fpt.laboratory.dto.response.project.GetProjectResponse;
@@ -33,4 +37,6 @@ public interface ProjectService {
     GetProjectDetailResponse getProjectDetailByProjectId(String projectId);
 
     void removeMemberFromProject(String projectId, String memberId);
+
+    PageableResponse<GetMemberNotInProjectResponse> getMemberNotInProject(GetMemberNotInProjectRequest request);
 }
