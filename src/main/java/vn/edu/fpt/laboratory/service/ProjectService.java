@@ -30,7 +30,7 @@ public interface ProjectService {
 
     PageableResponse<GetProjectResponse> getProjectByCondition(_GetProjectRequest request);
 
-    PageableResponse<GetProjectResponse> getProjectByLaboratoryId(String labId);
+    PageableResponse<GetProjectResponse> getProjectByLaboratoryId(String labId, String memberId);
 
     PageableResponse<GetMemberResponse> getMemberInProject(String projectId);
 
