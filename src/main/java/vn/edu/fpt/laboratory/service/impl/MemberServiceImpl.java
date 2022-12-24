@@ -51,9 +51,7 @@ public class MemberServiceImpl implements MemberInfoService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
         List<MemberInfo> memberInfos = project.getMembers();
         for (String s : request.getMemberIds()) {
-            Optional<MemberInfo> memberInProject = project.getMembers().stream().filter(v -> v.getMemberId().equals(s))
-                    .findAny();
-            if (memberInProject.isPresent()) {
+            if (project.getMembers().stream().anyMatch(v->v.getMemberId().equals(s))) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member already contain this project");
             }
             MemberInfo memberInfo = memberInfoRepository.findById(s)
