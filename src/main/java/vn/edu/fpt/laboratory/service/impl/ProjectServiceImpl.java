@@ -354,10 +354,10 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project Id not exist in get member not in project: "+ request.getProjectId()));
         List<MemberInfo> memberInfoInLab = laboratory.getMembers();
         List<MemberInfo> memberInfoInProject = project.getMembers();
-        List<String> memberIdInProject = memberInfoInProject.stream().map(MemberInfo::getMemberId).collect(Collectors.toList());
+        List<String> accountIdInProject = memberInfoInProject.stream().map(MemberInfo::getAccountId).collect(Collectors.toList());
         List<ObjectId> memberIbInLabNotInProject = memberInfoInLab.stream()
+                .filter(v -> !accountIdInProject.contains(v.getAccountId()))
                 .map(MemberInfo::getMemberId)
-                .filter(v -> !memberIdInProject.contains(v))
                 .map(ObjectId::new)
                 .collect(Collectors.toList());
         Query query = new Query();
