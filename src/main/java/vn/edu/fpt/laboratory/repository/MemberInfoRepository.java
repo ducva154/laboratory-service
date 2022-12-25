@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import vn.edu.fpt.laboratory.entity.Material;
 import vn.edu.fpt.laboratory.entity.MemberInfo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,5 @@ import java.util.Optional;
 public interface MemberInfoRepository extends MongoRepository<MemberInfo, String> {
 
     List<MemberInfo> findAllByAccountId(String accountId);
+    Integer countByCreatedDateBetween(LocalDateTime from, LocalDateTime to);
 }

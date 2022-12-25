@@ -4,6 +4,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import vn.edu.fpt.laboratory.entity.Material;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -17,4 +18,6 @@ import java.util.Optional;
 public interface MaterialRepository extends MongoRepository<Material, String> {
 
     Optional<Material> findByMaterialName(String materialName);
+
+    Integer countByCreatedDateBetween(LocalDateTime from, LocalDateTime to);
 }
