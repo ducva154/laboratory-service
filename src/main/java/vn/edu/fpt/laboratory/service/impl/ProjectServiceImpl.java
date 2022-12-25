@@ -16,6 +16,7 @@ import vn.edu.fpt.laboratory.config.kafka.producer.GenerateProjectAppProducer;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ProjectRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.constant.RoleInLaboratoryEnum;
 import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.dto.common.GeneralResponse;
 import vn.edu.fpt.laboratory.dto.common.MemberInfoResponse;
@@ -333,22 +334,43 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
 
         List<MemberInfo> memberInfos = project.getMembers();
-        Optional<MemberInfo> memberInProject = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
+        Optional<MemberInfo> member = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findFirst();
 
-        if (memberInProject.isEmpty()) {
+        if (member.isEmpty()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromProject");
         }
-
-        if (memberInfos.remove(memberInProject.get())) {
-            project.setMembers(memberInfos);
+        Optional<Laboratory> lab = laboratoryRepository.findAll().stream().filter(v->v.getProjects().contains(project)).findFirst();
+        if (lab.isEmpty()) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project not in any lab");
+        }
+        if (memberInfos.size() == 1) {
+            deleteProject(lab.get().getLaboratoryId(), projectId);
+        }
+        memberInfos.removeIf(v->v.getMemberId().equals(memberId));
+        if (member.get().getRole().equals(RoleInLaboratoryEnum.OWNER.getRole())) {
+            Optional<MemberInfo> newOwner = memberInfos.stream().findFirst();
+            newOwner.get().setRole(RoleInLaboratoryEnum.OWNER.getRole());
             try {
-                projectRepository.save(project);
-                log.info("Remove member from Project success");
+                memberInfoRepository.save(newOwner.get());
+                log.info("Save new owner in database success");
             } catch (Exception ex) {
-                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove Project");
+                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't save new owner in database");
             }
-        } else {
-            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from Project");
+            project.setOwnerBy(newOwner.get());
+        }
+
+        project.setMembers(memberInfos);
+        try {
+            projectRepository.save(project);
+            log.info("Save project from lab success");
+        } catch (Exception ex) {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update project in database after remove member");
+        }
+        try {
+            memberInfoRepository.deleteById(memberId);
+            log.info("Remove member in database success");
+        } catch (Exception ex) {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member in database");
         }
     }
 
