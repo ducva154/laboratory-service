@@ -265,7 +265,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         if (member.isEmpty()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found");
         }
-        memberInfos.removeIf(v->v.getMemberId().equals(memberId));
+        memberInfos.removeIf(v -> v.getMemberId().equals(memberId));
         if (member.get().getRole().equals(RoleInLaboratoryEnum.OWNER.getRole())) {
             Optional<MemberInfo> newOwner = memberInfos.stream().findFirst();
             newOwner.get().setRole(RoleInLaboratoryEnum.OWNER.getRole());
@@ -317,7 +317,6 @@ public class LaboratoryServiceImpl implements LaboratoryService {
             throw new BusinessException("Can't get laboratory in database: " + ex.getMessage());
         }
 
-
         return getLaboratoryResponse;
     }
 
@@ -353,22 +352,19 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         if (Objects.nonNull(request.getDescription())) {
             query.addCriteria(Criteria.where("description").regex(request.getDescription()));
         }
-        String accountId = Optional.ofNullable(SecurityContextHolder.getContext())
-                .map(SecurityContext::getAuthentication)
-                .filter(Authentication::isAuthenticated)
-                .map(Authentication::getPrincipal)
-                .map(User.class::cast)
-                .map(User::getUsername).orElseThrow();
         if (Objects.nonNull(request.getAccountId())) {
             if (!ObjectId.isValid(request.getAccountId())) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "User ID invalid");
             }
             List<MemberInfo> memberInfos = memberInfoRepository.findAllByAccountId(request.getAccountId());
             List<ObjectId> memberId = memberInfos.stream().map(MemberInfo::getMemberId).map(ObjectId::new).collect(Collectors.toList());
-            if (request.getIsContain()) {
+            if (Boolean.TRUE.equals(request.getIsContain())) {
                 query.addCriteria(Criteria.where("members.$id").in(memberId));
             } else {
+                List<Application> applications = applicationRepository.findAllByAccountIdAndStatus(request.getAccountId(), ApplicationStatusEnum.WAITING_FOR_APPROVE);
+                List<ObjectId> applicationId = applications.stream().map(Application::getApplicationId).map(ObjectId::new).collect(Collectors.toList());
                 query.addCriteria(Criteria.where("members.$id").nin(memberId));
+                query.addCriteria(Criteria.where("application.$id").nin(applicationId));
             }
         }
 
@@ -556,7 +552,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         } catch (Exception ex) {
             throw new BusinessException("Can't create member info in database");
         }
-        if(request.getStatus().equals(ApplicationStatusEnum.APPROVED.getStatusName())){
+        if (request.getStatus().equals(ApplicationStatusEnum.APPROVED.getStatusName())) {
             List<MemberInfo> memberInfos = laboratory.getMembers();
             memberInfos.add(memberInfo);
             laboratory.setMembers(memberInfos);
@@ -611,6 +607,38 @@ public class LaboratoryServiceImpl implements LaboratoryService {
 
     @Override
     public PageableResponse<GetLaboratoryResponse> getLaboratoryWaiting(GetLaboratoryRequest request) {
-        return null;
+        Query query = new Query();
+
+        if (Objects.nonNull(request.getLaboratoryId())) {
+            query.addCriteria(Criteria.where("_id").is(request.getLaboratoryId()));
+        }
+        if (Objects.nonNull(request.getLaboratoryName())) {
+            query.addCriteria(Criteria.where("laboratory_name").regex(request.getLaboratoryName()));
+        }
+
+        if (Objects.nonNull(request.getMajor())) {
+            query.addCriteria(Criteria.where("major").regex(request.getMajor()));
+        }
+        if (Objects.nonNull(request.getDescription())) {
+            query.addCriteria(Criteria.where("description").regex(request.getDescription()));
+        }
+        if (Objects.nonNull(request.getAccountId())) {
+            if (!ObjectId.isValid(request.getAccountId())) {
+                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "User ID invalid");
+            }
+            List<Application> applications = applicationRepository.findAllByAccountIdAndStatus(request.getAccountId(), ApplicationStatusEnum.WAITING_FOR_APPROVE);
+            List<ObjectId> applicationId = applications.stream().map(Application::getApplicationId).map(ObjectId::new).collect(Collectors.toList());
+            query.addCriteria(Criteria.where("application.$id").in(applicationId));
+        }
+
+        Long totalElement = mongoTemplate.count(query, Laboratory.class);
+
+        BaseMongoRepository.addCriteriaWithPageable(query, request);
+
+        List<Laboratory> laboratories = mongoTemplate.find(query, Laboratory.class);
+
+        List<GetLaboratoryResponse> getLaboratoryDetailResponses = laboratories.stream().map(this::convertLaboratoryToGetLaboratoryResponse).collect(Collectors.toList());
+
+        return new PageableResponse<>(request, totalElement, getLaboratoryDetailResponses);
     }
 }

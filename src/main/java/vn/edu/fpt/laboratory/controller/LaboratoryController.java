@@ -198,7 +198,7 @@ public interface LaboratoryController {
             @RequestParam(name = "size", required = false) Integer size
     );
 
-    @GetMapping("/wating")
+    @GetMapping("/waiting")
     ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getWaitingLaboratory(
             @RequestParam(name = "lab-id", required = false) String labId,
             @RequestParam(name = "account-id", required = false) String accountId,
