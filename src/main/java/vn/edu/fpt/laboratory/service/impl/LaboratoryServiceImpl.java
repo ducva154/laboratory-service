@@ -13,6 +13,7 @@ import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
 import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
 import vn.edu.fpt.laboratory.constant.LaboratoryRoleEnum;
 import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
+import vn.edu.fpt.laboratory.constant.RoleInLaboratoryEnum;
 import vn.edu.fpt.laboratory.dto.cache.UserInfo;
 import vn.edu.fpt.laboratory.dto.common.*;
 import vn.edu.fpt.laboratory.dto.event.SendEmailEvent;
@@ -118,8 +119,18 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         }
         if (Objects.nonNull(request.getOwnerBy()) && ObjectId.isValid(request.getOwnerBy())) {
             log.info("Update Laboratory name: {}", request.getLaboratoryName());
+            MemberInfo currentOwnerBy = laboratory.getOwnerBy();
+            currentOwnerBy.setRole(RoleInLaboratoryEnum.MEMBER.getRole());
             MemberInfo memberInfo = laboratory.getMembers().stream().filter(v -> v.getMemberId().equals(request.getOwnerBy())).findAny().orElseThrow();
+            memberInfo.setRole(RoleInLaboratoryEnum.OWNER.getRole());
             laboratory.setOwnerBy(memberInfo);
+            try {
+                memberInfoRepository.save(currentOwnerBy);
+                memberInfoRepository.save(memberInfo);
+                log.info("Update Laboratory success");
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save Laboratory in database when update: " + ex.getMessage());
+            }
         } else {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Invalid ownerBy");
         }
@@ -129,6 +140,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         } catch (Exception ex) {
             throw new BusinessException("Can't save Laboratory in database when update: " + ex.getMessage());
         }
+
     }
 
     @Override
@@ -150,7 +162,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         String accountId = userInfoService.getAccountId();
         Optional<MemberInfo> memberInfoOptional = laboratory.getMembers().stream().filter(v -> v.getAccountId().equals(accountId)).findFirst();
         MemberInfoResponse memberInfoResponse = null;
-        if(memberInfoOptional.isPresent()){
+        if (memberInfoOptional.isPresent()) {
             MemberInfo memberInfo = memberInfoOptional.get();
             memberInfoResponse = MemberInfoResponse.builder()
                     .memberId(memberInfo.getMemberId())
@@ -229,30 +241,42 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Role id not found"));
 
         List<Project> projects = laboratory.getProjects();
-        for (Project p : projects ) {
+        for (Project p : projects) {
             List<MemberInfo> memberInfos = p.getMembers();
-            for (MemberInfo m : memberInfos ) {
+            for (MemberInfo m : memberInfos) {
                 if (m.getMemberId().equals(memberId)) {
                     projectService.removeMemberFromProject(p.getProjectId(), memberId);
                 }
             }
         }
         List<MemberInfo> memberInfos = laboratory.getMembers();
-        Optional<MemberInfo> memberInLabo = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findAny();
+        Optional<MemberInfo> member = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findFirst();
 
-        if (memberInLabo.isEmpty()) {
+        if (member.isEmpty()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found");
         }
-        if (memberInfos.remove(memberInLabo.get())) {
-            laboratory.setMembers(memberInfos);
+        if (memberInfos.size() == 1) {
+            deleteLaboratory(labId);
+        }
+        memberInfos.removeIf(v->v.getMemberId().equals(memberId));
+        if (member.get().getRole().equals(RoleInLaboratoryEnum.OWNER.getRole())) {
+            Optional<MemberInfo> newOwner = memberInfos.stream().findFirst();
+            newOwner.get().setRole(RoleInLaboratoryEnum.OWNER.getRole());
             try {
-                laboratoryRepository.save(laboratory);
-                log.info("Remove member from lab success");
+                memberInfoRepository.save(newOwner.get());
+                log.info("Save new owner in database success");
             } catch (Exception ex) {
-                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update lab in database after remove member");
+                throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't save new owner in database");
             }
-        } else {
-            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't remove member from lab");
+            laboratory.setOwnerBy(newOwner.get());
+        }
+
+        laboratory.setMembers(memberInfos);
+        try {
+            laboratoryRepository.save(laboratory);
+            log.info("Remove member from lab success");
+        } catch (Exception ex) {
+            throw new BusinessException(ResponseStatusEnum.INTERNAL_SERVER_ERROR, "Can't update lab in database after remove member");
         }
         try {
             memberInfoRepository.deleteById(memberId);
@@ -281,9 +305,9 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         PageableResponse<GetLaboratoryResponse> getLaboratoryResponse;
         try {
             getLaboratoryResponse = getLaboratoryInDatabase(request);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.error(ex.getMessage());
-            throw new BusinessException("Can't get laboratory in database: "+ ex.getMessage());
+            throw new BusinessException("Can't get laboratory in database: " + ex.getMessage());
         }
 
 
@@ -297,9 +321,9 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         PageableResponse<GetLaboratoryResponse> getLaboratoryResponse;
         try {
             getLaboratoryResponse = getLaboratoryInDatabase(request);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.error(ex.getMessage());
-            throw new BusinessException("Can't get laboratory in database: "+ ex.getMessage());
+            throw new BusinessException("Can't get laboratory in database: " + ex.getMessage());
         }
 
 
@@ -547,9 +571,9 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                 .build();
 
         ResponseEntity<GeneralResponse<PageableResponse<GetMemberNotInLabResponse>>> response = accountFeignService.getAccountNotInLab(request);
-        if(Objects.nonNull(response.getBody())){
+        if (Objects.nonNull(response.getBody())) {
             final GeneralResponse<PageableResponse<GetMemberNotInLabResponse>> generalResponse = response.getBody();
-            if(Objects.nonNull(generalResponse.getData())){
+            if (Objects.nonNull(generalResponse.getData())) {
                 return generalResponse.getData();
             }
         }
