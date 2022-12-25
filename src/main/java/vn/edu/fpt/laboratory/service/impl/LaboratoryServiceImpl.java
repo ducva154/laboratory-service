@@ -520,13 +520,15 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         } catch (Exception ex) {
             throw new BusinessException("Can't create member info in database");
         }
-        List<MemberInfo> memberInfos = laboratory.getMembers();
-        memberInfos.add(memberInfo);
-        laboratory.setMembers(memberInfos);
-        try {
-            laboratoryRepository.save(laboratory);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save laboratory after add member in database");
+        if(request.getStatus().equals(ApplicationStatusEnum.APPROVED.getStatusName())){
+            List<MemberInfo> memberInfos = laboratory.getMembers();
+            memberInfos.add(memberInfo);
+            laboratory.setMembers(memberInfos);
+            try {
+                laboratoryRepository.save(laboratory);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save laboratory after add member in database");
+            }
         }
     }
 
