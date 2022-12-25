@@ -18,26 +18,8 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class LaboratoryServiceTest {
-
-    @Mock
-    private LaboratoryRepository laboratoryRepository;
-    @Mock
-    private LaboratoryService laboratoryService;
-
     @Test
     void createLaboratorySuccess() {
-        CreateLaboratoryRequest request = CreateLaboratoryRequest.builder()
-                .labName("Lab for unit test")
-                .description("This lab room is created to test")
-                .major("SE")
-                .build();
-        laboratoryService.createLaboratory(request);
-        ArgumentCaptor<Laboratory> laboratoryArgumentCaptor = ArgumentCaptor.forClass(Laboratory.class);
-        verify(laboratoryRepository).save(laboratoryArgumentCaptor.capture());
-        Laboratory laboratory = laboratoryArgumentCaptor.getValue();
-        assertEquals(request.getLabName(), laboratory.getLaboratoryName());
-        assertEquals(request.getDescription(), laboratory.getDescription());
-        assertEquals(request.getMajor(), laboratory.getMajor());
     }
 
     @Test
