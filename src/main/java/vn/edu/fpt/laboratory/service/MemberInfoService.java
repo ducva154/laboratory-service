@@ -16,7 +16,7 @@ public interface MemberInfoService {
 
     void addMemberToProject(String projectId, AddMemberToProjectRequest request);
 
-    void addMemberToLaboratory(String labId, @RequestBody AddMemberToLaboratoryRequest request);
+    void addMemberToLaboratory(String labId, AddMemberToLaboratoryRequest request);
 
     void updateMember(String memberId, UpdateMemberInfoRequest request);
 

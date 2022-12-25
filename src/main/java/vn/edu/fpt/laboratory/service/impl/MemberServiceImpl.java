@@ -56,7 +56,16 @@ public class MemberServiceImpl implements MemberInfoService {
             }
             MemberInfo memberInfo = memberInfoRepository.findById(s)
                     .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found"));
-            memberInfos.add(memberInfo);
+            MemberInfo memberInfoForProject = MemberInfo.builder()
+                    .accountId(memberInfo.getAccountId())
+                    .role(LaboratoryRoleEnum.MEMBER.getRole())
+                    .build();
+            try {
+                memberInfoForProject = memberInfoRepository.save(memberInfoForProject);
+            }catch (Exception ex){
+                throw new BusinessException("Can't save member info for project to database" + ex.getMessage());
+            }
+            memberInfos.add(memberInfoForProject);
             modifyMembersToWorkspaceProducer.sendMessage(ModifyMembersToWorkspaceEvent.builder()
                     .workspaceId(projectId)
                     .accountId(memberInfo.getAccountId())
