@@ -197,4 +197,16 @@ public interface LaboratoryController {
             @RequestParam(name = "page", required = false) Integer page,
             @RequestParam(name = "size", required = false) Integer size
     );
+
+    @GetMapping("/wating")
+    ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getWaitingLaboratory(
+            @RequestParam(name = "lab-id", required = false) String labId,
+            @RequestParam(name = "account-id", required = false) String accountId,
+            @RequestParam(name = "lab-name", required = false) String labName,
+            @RequestParam(name = "lab-name-sort-by", required = false) String labNameSortBy,
+            @RequestParam(name = "major", required = false) String major,
+            @RequestParam(name = "major-sort-by", required = false) String majorSortBy,
+            @RequestParam(name = "page", required = false) Integer page,
+            @RequestParam(name = "size", required = false) Integer size
+    );
 }

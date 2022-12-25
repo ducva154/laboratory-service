@@ -7,6 +7,10 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.laboratory.config.kafka.producer.SendEmailProducer;
@@ -349,7 +353,12 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         if (Objects.nonNull(request.getDescription())) {
             query.addCriteria(Criteria.where("description").regex(request.getDescription()));
         }
-
+        String accountId = Optional.ofNullable(SecurityContextHolder.getContext())
+                .map(SecurityContext::getAuthentication)
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getPrincipal)
+                .map(User.class::cast)
+                .map(User::getUsername).orElseThrow();
         if (Objects.nonNull(request.getAccountId())) {
             if (!ObjectId.isValid(request.getAccountId())) {
                 throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "User ID invalid");
@@ -598,5 +607,10 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                         .build())
                 .lastModifiedDate(application.getLastModifiedDate())
                 .build();
+    }
+
+    @Override
+    public PageableResponse<GetLaboratoryResponse> getLaboratoryWaiting(GetLaboratoryRequest request) {
+        return null;
     }
 }

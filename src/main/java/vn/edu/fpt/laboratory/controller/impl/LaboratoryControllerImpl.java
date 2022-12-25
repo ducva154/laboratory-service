@@ -397,4 +397,26 @@ public class LaboratoryControllerImpl implements LaboratoryController {
                 .build();
         return responseFactory.response(projectService.getMemberNotInProject(request));
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse<PageableResponse<GetLaboratoryResponse>>> getWaitingLaboratory(String labId, String accountId, String labName, String labNameSortBy, String major, String majorSortBy, Integer page, Integer size) {
+        List<SortableRequest> sortableRequests = new ArrayList<>();
+        if(Objects.nonNull(labNameSortBy)){
+            sortableRequests.add(new SortableRequest("laboratory_name", labNameSortBy));
+        }
+        if(Objects.nonNull(majorSortBy)){
+            sortableRequests.add(new SortableRequest("major", majorSortBy));
+        }
+
+        GetLaboratoryRequest request = GetLaboratoryRequest.builder()
+                .laboratoryId(labId)
+                .accountId(accountId)
+                .laboratoryName(labName)
+                .major(major)
+                .page(page)
+                .size(size)
+                .sortBy(sortableRequests)
+                .build();
+        return responseFactory.response(laboratoryService.getLaboratoryWaiting(request));
+    }
 }

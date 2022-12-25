@@ -1,9 +1,7 @@
 package vn.edu.fpt.laboratory.service;
 
-import vn.edu.fpt.laboratory.constant.ResponseStatusEnum;
 import vn.edu.fpt.laboratory.dto.common.PageableResponse;
 import vn.edu.fpt.laboratory.dto.request.laboratory.*;
-import vn.edu.fpt.laboratory.dto.request.member.AddMemberToLaboratoryRequest;
 import vn.edu.fpt.laboratory.dto.response.laboratory.*;
 import vn.edu.fpt.laboratory.dto.response.member.GetMemberNotInLabResponse;
 
@@ -40,4 +38,6 @@ public interface LaboratoryService {
     void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request);
 
     PageableResponse<GetMemberNotInLabResponse> getMemberNotInLab(String labId, String username, Integer page, Integer size);
+
+    PageableResponse<GetLaboratoryResponse> getLaboratoryWaiting(GetLaboratoryRequest request);
 }
