@@ -8,6 +8,8 @@ import org.springframework.data.mongodb.core.mapping.FieldType;
 import vn.edu.fpt.laboratory.constant.ApplicationStatusEnum;
 import vn.edu.fpt.laboratory.entity.common.Auditor;
 
+import java.util.Comparator;
+
 /**
  * @author : Hoang Lam
  * @product : Charity Management System
@@ -21,7 +23,7 @@ import vn.edu.fpt.laboratory.entity.common.Auditor;
 @Setter
 @ToString
 @SuperBuilder
-public class Application extends Auditor {
+public class Application extends Auditor{
 
     private static final long serialVersionUID = -73935165214054223L;
     @Id

@@ -28,8 +28,10 @@ import vn.edu.fpt.laboratory.service.AccountFeignService;
 import vn.edu.fpt.laboratory.service.LaboratoryService;
 import vn.edu.fpt.laboratory.service.ProjectService;
 import vn.edu.fpt.laboratory.service.UserInfoService;
+import vn.edu.fpt.laboratory.utils.ApplicationSortByStatus;
 import vn.edu.fpt.laboratory.utils.AuditorUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -474,7 +476,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         BaseMongoRepository.addCriteriaWithPageable(query, request);
         BaseMongoRepository.addCriteriaWithSorted(query, request);
         List<Application> applications = mongoTemplate.find(query, Application.class);
-
+        applications.sort(new ApplicationSortByStatus());
         List<GetApplicationResponse> getApplicationResponses = applications.stream().map(this::convertApplicationToGetApplicationResponse).collect(Collectors.toList());
         return new PageableResponse<>(request, totalElements, getApplicationResponses);
     }
