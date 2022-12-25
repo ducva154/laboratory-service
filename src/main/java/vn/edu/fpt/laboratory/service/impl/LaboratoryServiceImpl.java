@@ -241,24 +241,25 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     public void removeMemberFromLaboratory(String labId, String memberId) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Role id not found"));
-
+        MemberInfo memberInfo = memberInfoRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found"));
         List<Project> projects = laboratory.getProjects();
         for (Project p : projects) {
             List<MemberInfo> memberInfos = p.getMembers();
             for (MemberInfo m : memberInfos) {
-                if (m.getMemberId().equals(memberId)) {
-                    projectService.removeMemberFromProject(p.getProjectId(), memberId);
+                if (m.getAccountId().equals(memberInfo.getAccountId())) {
+                    projectService.removeMemberFromProject(p.getProjectId(), m.getMemberId());
                 }
             }
         }
         List<MemberInfo> memberInfos = laboratory.getMembers();
+        if (memberInfos.size() == 1) {
+            deleteLaboratory(labId);
+        }
         Optional<MemberInfo> member = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findFirst();
 
         if (member.isEmpty()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found");
-        }
-        if (memberInfos.size() == 1) {
-            deleteLaboratory(labId);
         }
         memberInfos.removeIf(v->v.getMemberId().equals(memberId));
         if (member.get().getRole().equals(RoleInLaboratoryEnum.OWNER.getRole())) {
@@ -546,13 +547,15 @@ public class LaboratoryServiceImpl implements LaboratoryService {
         } catch (Exception ex) {
             throw new BusinessException("Can't create member info in database");
         }
-        List<MemberInfo> memberInfos = laboratory.getMembers();
-        memberInfos.add(memberInfo);
-        laboratory.setMembers(memberInfos);
-        try {
-            laboratoryRepository.save(laboratory);
-        } catch (Exception ex) {
-            throw new BusinessException("Can't save laboratory after add member in database");
+        if(request.getStatus().equals(ApplicationStatusEnum.APPROVED.getStatusName())){
+            List<MemberInfo> memberInfos = laboratory.getMembers();
+            memberInfos.add(memberInfo);
+            laboratory.setMembers(memberInfos);
+            try {
+                laboratoryRepository.save(laboratory);
+            } catch (Exception ex) {
+                throw new BusinessException("Can't save laboratory after add member in database");
+            }
         }
     }
 

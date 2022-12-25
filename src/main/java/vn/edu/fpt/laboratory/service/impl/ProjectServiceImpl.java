@@ -334,18 +334,20 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project id not found"));
 
         List<MemberInfo> memberInfos = project.getMembers();
-        Optional<MemberInfo> member = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findFirst();
-
-        if (member.isEmpty()) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromProject");
-        }
-        Optional<Laboratory> lab = laboratoryRepository.findAll().stream().filter(v->v.getProjects().contains(project)).findFirst();
+        Optional<Laboratory> lab = laboratoryRepository.findAll().stream().filter(v->v.getProjects().stream().anyMatch(t->t.getProjectId().equals(projectId))).findFirst();
         if (lab.isEmpty()) {
             throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project not in any lab");
         }
         if (memberInfos.size() == 1) {
             deleteProject(lab.get().getLaboratoryId(), projectId);
         }
+
+        Optional<MemberInfo> member = memberInfos.stream().filter(v -> v.getMemberId().equals(memberId)).findFirst();
+
+        if (member.isEmpty()) {
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Member id not found removeMemberFromProject");
+        }
+
         memberInfos.removeIf(v->v.getMemberId().equals(memberId));
         if (member.get().getRole().equals(RoleInLaboratoryEnum.OWNER.getRole())) {
             Optional<MemberInfo> newOwner = memberInfos.stream().findFirst();
