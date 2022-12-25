@@ -152,6 +152,9 @@ public interface LaboratoryController {
     @GetMapping("/applications/{application-id}")
     ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(@PathVariable(name = "application-id") String applicationId);
 
+    @GetMapping("/{lab-id}/applications/count")
+    ResponseEntity<GeneralResponse<Long>> countApplicationInLab(@PathVariable(name = "lab-id") String labId);
+
     @PostMapping("/{lab-id}/members/member")
     ResponseEntity<GeneralResponse<Object>> addMemberToLaboratory(@PathVariable(name = "lab-id") String labId, @RequestBody AddMemberToLaboratoryRequest request);
 

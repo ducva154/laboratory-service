@@ -19,7 +19,7 @@ public class ApplicationSortByStatus implements Comparator<Application> {
         Integer o1Order = getStatusOrder(o1.getStatus());
         Integer o2Order = getStatusOrder(o2.getStatus());
 
-        return o1Order - o2Order;
+        return o2Order - o1Order;
     }
 
     private Integer getStatusOrder(ApplicationStatusEnum status){

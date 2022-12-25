@@ -287,9 +287,8 @@ public class LaboratoryControllerImpl implements LaboratoryController {
         if(Objects.nonNull(statusSortBy)) {
             sortableRequests.add(new SortableRequest("status", statusSortBy));
         }
-        if(Objects.nonNull(createdDateSortBy)){
-            sortableRequests.add(new SortableRequest("created_date", createdDateSortBy));
-        }
+            sortableRequests.add(new SortableRequest("created_date", "DESC"));
+
         if(Objects.nonNull(lastModifiedDateSortBy)){
             sortableRequests.add(new SortableRequest("last_modified_date", lastModifiedDateSortBy));
         }
@@ -312,6 +311,11 @@ public class LaboratoryControllerImpl implements LaboratoryController {
     @Override
     public ResponseEntity<GeneralResponse<GetApplicationDetailResponse>> getApplicationByApplicationId(String applicationId) {
         return responseFactory.response(laboratoryService.getApplicationByApplicationId(applicationId));
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse<Long>> countApplicationInLab(String labId) {
+        return responseFactory.response(laboratoryService.countApplicationOfLab(labId));
     }
 
     @Override

@@ -35,6 +35,8 @@ public interface LaboratoryService {
 
     PageableResponse<GetApplicationResponse> getApplicationByLabId(String labId, GetApplicationRequest request);
 
+    Long countApplicationOfLab(String labId);
+
     void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request);
 
     PageableResponse<GetMemberNotInLabResponse> getMemberNotInLab(String labId, String username, Integer page, Integer size);

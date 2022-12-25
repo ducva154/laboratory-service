@@ -512,6 +512,13 @@ public class LaboratoryServiceImpl implements LaboratoryService {
     }
 
     @Override
+    public Long countApplicationOfLab(String labId) {
+        Laboratory laboratory = laboratoryRepository.findById(labId)
+                .orElseThrow(()-> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab ID not exist"));
+        return laboratory.getApplications().stream().filter(v->v.getStatus().equals(ApplicationStatusEnum.WAITING_FOR_APPROVE)).count();
+    }
+
+    @Override
     public void reviewApplication(String labId, String applicationId, ReviewApplicationRequest request) {
         Laboratory laboratory = laboratoryRepository.findById(labId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Lab Id not exist"));
