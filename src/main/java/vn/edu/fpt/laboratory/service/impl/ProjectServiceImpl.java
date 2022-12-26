@@ -161,11 +161,13 @@ public class ProjectServiceImpl implements ProjectService {
         if(!memberInfo.getRole().equals("OWNER") && !memberInfo.getRole().equals("MANAGER")){
             throw new BusinessException("You don't have permission to update role");
         }
-        if (Objects.nonNull(request.getProjectName())) {
-            if (projects.stream().anyMatch(m -> m.getProjectName().equals(request.getProjectName()))) {
-                throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
-            } else {
-                project.setProjectName(request.getProjectName());
+        if (!project.getProjectName().equals(request.getProjectName())) {
+            if (Objects.nonNull(request.getProjectName())) {
+                if (projects.stream().anyMatch(m -> m.getProjectName().equals(request.getProjectName()))) {
+                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Project name is already exist");
+                } else {
+                    project.setProjectName(request.getProjectName());
+                }
             }
         }
         if (Objects.nonNull(request.getDescription())) {
