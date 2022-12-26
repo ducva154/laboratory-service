@@ -36,7 +36,6 @@ public class DisplayMessageRepositoryImpl implements DisplayMessageRepository{
         try {
             return Optional.of(objectMapper.convertValue(displayMessageStr, DisplayMessage.class));
         }catch (Exception ex) {
-            log.error("Can't get display message from: {}", ex.getMessage());
             return Optional.empty();
         }
     }

@@ -252,7 +252,7 @@ public class MaterialServiceImpl implements MaterialService {
                 .materialName(material.getMaterialName())
                 .description(material.getDescription())
                 .status(material.getStatus())
-                .amount(material.getAmount())
+                .amount(material.getTotalAmount())
                 .image(s3BucketStorageService.getPublicURL(material.getImages().getFileKey()))
                 .build();
     }
@@ -272,14 +272,24 @@ public class MaterialServiceImpl implements MaterialService {
             throw new BusinessException("Can't save material to database"+ ex.getMessage());
         }
 
+        LocalDateTime currentDate = LocalDateTime.now();
+
+        AtomicReference<Integer> freeAmount = new AtomicReference<>(0);
+        borrowTimes.forEach(v -> {
+            if(v.getFromDate().isBefore(currentDate) && v.getReturnDate().isAfter(currentDate)){
+                freeAmount.updateAndGet(s -> s + v.getAmount());
+            }
+        });
+
+
         return GetMaterialDetailResponse.builder()
                 .materialId(material.getMaterialId())
                 .materialName(material.getMaterialName())
                 .description(material.getDescription())
-                .status(material.getStatus())
+                .status((material.getTotalAmount() - freeAmount.get())  <= 0 ? MaterialStatusEnum.IN_USED.getStatus() : MaterialStatusEnum.FREE.getStatus())
                 .images(convertImageToGetImageResponse(image))
                 .note(material.getNote())
-                .amount(material.getAmount())
+                .amount(material.getTotalAmount() - freeAmount.get())
                 .borrowTime(material.getBorrowTime())
                 .createdBy(UserInfoResponse.builder()
                         .accountId(material.getCreatedBy())
@@ -308,10 +318,6 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Laboratory ID not exist"));
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
-
-        if (request.getAmount() > material.getAmount()) {
-            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough material to order");
-        }
 
         List<BorrowTime> borrowTimeList = material.getBorrowTime();
 
@@ -507,7 +513,7 @@ public class MaterialServiceImpl implements MaterialService {
                         .build();
                 List<BorrowTime> borrowTimeList = material.getBorrowTime();
                 borrowTimeList.add(borrowTime);
-                if(material.getAmount() < orderHistory.getAmount()){
+                if(material.getTotalAmount() < orderHistory.getAmount()){
                     orderHistory.setStatus(OrderStatusEnum.REJECTED.getStatus());
                     try {
                         orderHistoryRepository.save(orderHistory);
