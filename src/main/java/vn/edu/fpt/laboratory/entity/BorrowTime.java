@@ -12,6 +12,6 @@ import java.time.LocalDateTime;
 @Builder
 public class BorrowTime {
     private LocalDateTime fromDate;
-    private LocalDateTime toDate;
+    private LocalDateTime returnDate;
     private Integer amount;
 }

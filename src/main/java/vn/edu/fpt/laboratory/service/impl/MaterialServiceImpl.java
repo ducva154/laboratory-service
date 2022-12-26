@@ -27,6 +27,7 @@ import vn.edu.fpt.laboratory.utils.FileUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -263,7 +264,7 @@ public class MaterialServiceImpl implements MaterialService {
 
         _Image image = material.getImages();
         List<BorrowTime> borrowTimes = material.getBorrowTime();
-        borrowTimes.removeIf(v -> v.getToDate().isBefore(LocalDateTime.now()));
+        borrowTimes.removeIf(v -> v.getReturnDate().isBefore(LocalDateTime.now()));
         material.setBorrowTime(borrowTimes);
         try {
             materialRepository.save(material);
@@ -313,16 +314,22 @@ public class MaterialServiceImpl implements MaterialService {
         }
 
         List<BorrowTime> borrowTimeList = material.getBorrowTime();
-        if (!borrowTimeList.isEmpty()) {
-            for (BorrowTime b : borrowTimeList) {
-                if (b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderFrom()) ||
-                        b.getFromDate().isBefore(request.getOrderTo()) && b.getToDate().isAfter(request.getOrderTo()) ||
-                        b.getFromDate().isBefore(request.getOrderFrom()) && b.getToDate().isAfter(request.getOrderTo()) ||
-                        b.getFromDate().isAfter(request.getOrderFrom()) && b.getToDate().isBefore(request.getOrderTo()) ||
-                        b.getFromDate().isEqual(request.getOrderFrom()) && b.getToDate().isEqual(request.getOrderTo())) {
-                    throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "The material is in used in order time");
+
+        AtomicReference<Integer> freeAmount = new AtomicReference<>(0);
+        borrowTimeList.forEach(v -> {
+                    if (
+                            v.getReturnDate().isBefore(request.getOrderFrom()) ||
+                                    v.getReturnDate().equals(request.getOrderFrom()) ||
+                                    v.getFromDate().isAfter(request.getOrderTo()) ||
+                                    v.getFromDate().equals(request.getOrderTo())
+                    ) {
+                        freeAmount.updateAndGet(v1 -> v1 + v.getAmount());
+                    }
                 }
-            }
+        );
+
+        if(material.getAmount()+freeAmount.get() < request.getAmount()){
+            throw new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Not enough amount for request");
         }
         OrderHistory orderHistory = OrderHistory.builder()
                 .reason(request.getReason())
@@ -491,10 +498,12 @@ public class MaterialServiceImpl implements MaterialService {
                 .orElseThrow(()->new BusinessException(ResponseStatusEnum.BAD_REQUEST, "Material ID not exist"));
         if (Objects.nonNull(request.getStatus())) {
             if (request.getStatus().equals(OrderStatusEnum.APPROVED.getStatus())) {
+
                 orderHistory.setStatus(OrderStatusEnum.APPROVED.getStatus());
                 BorrowTime borrowTime = BorrowTime.builder()
                         .fromDate(orderHistory.getOrderFrom())
-                        .toDate(orderHistory.getOrderTo())
+                        .returnDate(orderHistory.getOrderTo())
+                        .amount(orderHistory.getAmount())
                         .build();
                 List<BorrowTime> borrowTimeList = material.getBorrowTime();
                 borrowTimeList.add(borrowTime);
