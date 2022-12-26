@@ -36,10 +36,7 @@ import vn.edu.fpt.laboratory.service.UserInfoService;
 import vn.edu.fpt.laboratory.utils.ApplicationSortByStatus;
 import vn.edu.fpt.laboratory.utils.AuditorUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -447,6 +444,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                         .sendTo(email)
                         .cc(null)
                         .bcc(null)
+                        .params(Map.of("LAB_NAME", laboratory.getLaboratoryName(), "USER", userInfoService.getUserInfo(request.getAccountId()).getFullName()))
                         .build();
                 sendEmailProducer.sendMessage(event);
             }
@@ -546,6 +544,7 @@ public class LaboratoryServiceImpl implements LaboratoryService {
                         .sendTo(userInfo.getEmail())
                         .bcc(null)
                         .cc(null)
+                        .params(Map.of("LAB_NAME", laboratory.getLaboratoryName(), "STATUS", request.getStatus()))
                         .build();
                 sendEmailProducer.sendMessage(sendEmailEvent);
             }
